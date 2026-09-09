@@ -91,6 +91,7 @@ export type HomepageSectionItem = {
   [key: string]: unknown;
 };
 
+
 export type HomepageSection = {
   id: string;
   section_key: string;
@@ -215,6 +216,7 @@ export type ValueItem = {
   sort_order: number;
   is_active: boolean;
   created_at: string;
+  updated_at?: string;
 };
 
 export type ContactAddress = {
@@ -243,6 +245,7 @@ export type ContactSettings = {
   map_note: string;
   property_types: string[];
   cta_text: string;
+  created_at?: string;
   updated_at: string;
 };
 
@@ -287,6 +290,7 @@ export type Statistic = {
   sort_order: number;
   is_active: boolean;
   created_at: string;
+  updated_at?: string;
 };
 
 export type MediaItem = {

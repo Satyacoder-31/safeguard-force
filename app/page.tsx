@@ -50,7 +50,7 @@ export default async function HomePage() {
   const section = (key: string) => sections.find((s) => s.section_key === key);
   const visible = (key: string) => {
     const s = section(key);
-    return s?.is_visible !== false && sections.some((x) => x.section_key === key);
+    return s ? s.is_visible !== false : true;
   };
 
   const trust = section("trust_intro");

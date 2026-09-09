@@ -4,6 +4,45 @@ import Link from "next/link";
 import type { HeroSlide, Statistic, SiteSettings } from "@/types/database";
 import { telHref } from "@/lib/utils";
 
+const DEFAULT_SLIDES: HeroSlide[] = [
+  {
+    id: "default-1",
+    title: "SECURITY",
+    highlighted_title: "THAT PROTECTS.",
+    description: "Professional security, facility management, technical maintenance, STP operations and confidential investigation solutions designed for safer, cleaner and efficiently managed premises.",
+    image_url: "/images/hero-mumbai-security.png",
+    mobile_image_url: "/images/hero-mumbai-security.png",
+    alt_text: "SAFE Guard FORCE trained security personnel",
+    button_text: "Get a Free Consultation",
+    button_url: "/contact",
+    phone_button_text: "Call 9323581437",
+    phone_number: "9323581437",
+    sort_order: 0,
+    is_active: true,
+    duration_ms: 5000,
+    created_at: "",
+    updated_at: "",
+  },
+  {
+    id: "default-2",
+    title: "SERVICES",
+    highlighted_title: "THAT PERFORM.",
+    description: "Professional security, facility management, technical maintenance, STP operations and confidential investigation solutions designed for safer, cleaner and efficiently managed premises.",
+    image_url: "/images/mumbai-business-district.png",
+    mobile_image_url: "/images/mumbai-business-district.png",
+    alt_text: "Premium corporate building entrance with security",
+    button_text: "Get a Free Consultation",
+    button_url: "/contact",
+    phone_button_text: "Call 9323581437",
+    phone_number: "9323581437",
+    sort_order: 1,
+    is_active: true,
+    duration_ms: 5000,
+    created_at: "",
+    updated_at: "",
+  },
+];
+
 export default function HeroSlideshow({
   slides,
   heroBarStats,
@@ -13,29 +52,20 @@ export default function HeroSlideshow({
   heroBarStats: Statistic[];
   settings: SiteSettings;
 }) {
+  const effectiveSlides = slides && slides.length > 0 ? slides : DEFAULT_SLIDES;
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const touchStartX = useRef<number | null>(null);
 
-  const count = Math.max(slides.length, 1);
-  const current = slides[index] ?? slides[0];
+  const count = effectiveSlides.length;
+  const current = effectiveSlides[index] ?? effectiveSlides[0];
 
   useEffect(() => {
-    if (paused || slides.length <= 1) return;
+    if (paused || effectiveSlides.length <= 1) return;
     const duration = current?.duration_ms ?? 5000;
-    const t = setInterval(() => setIndex((i) => (i + 1) % slides.length), duration);
+    const t = setInterval(() => setIndex((i) => (i + 1) % effectiveSlides.length), duration);
     return () => clearInterval(t);
-  }, [paused, slides.length, current?.duration_ms]);
-
-  if (!current) {
-    return (
-      <section className="relative h-[78vh] min-h-[540px] sm:min-h-[580px] lg:h-[88vh] lg:min-h-[560px] max-h-[680px] lg:max-h-[820px] overflow-hidden bg-[#070F1F]">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-white font-black text-3xl">SAFE GUARD <span className="text-[#C5A253]">FORCE</span></div>
-        </div>
-      </section>
-    );
-  }
+  }, [paused, effectiveSlides.length, current?.duration_ms]);
 
   const onTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -61,7 +91,7 @@ export default function HeroSlideshow({
       onTouchEnd={onTouchEnd}
     >
       {/* Slides */}
-      {slides.map((s, i) => (
+      {effectiveSlides.map((s, i) => (
         <div
           key={s.id}
           className={`absolute inset-0 transition-opacity duration-[1000ms] ease-in-out ${i === index ? "opacity-100" : "opacity-0"}`}
@@ -120,7 +150,7 @@ export default function HeroSlideshow({
       {/* Indicators */}
       <div className="absolute bottom-4 sm:bottom-8 left-4 sm:left-6 lg:left-[max(1.5rem,calc((100%-1280px)/2+1.5rem))] z-10 flex items-center gap-2 sm:gap-3">
         <div className="flex gap-1.5">
-          {slides.map((s, i) => (
+          {effectiveSlides.map((s, i) => (
             <button
               key={s.id}
               onClick={() => setIndex(i)}
