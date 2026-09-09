@@ -1,74 +1,18 @@
-import PageHero from "../components/PageHero";
-import Link from "next/link";
+import ServicePage from "../services/[slug]/page";
 
-export const metadata = { title: "Security Services — SAFE Guard FORCE" };
+/**
+ * Legacy URL compatibility: /security-services renders the CMS-driven
+ * service page for the "security-services" record. All original URLs are
+ * preserved — the content now comes from Supabase.
+ */
+export const revalidate = 300;
 
-const services = [
-  { title: "Security Guard Services", desc: "Trained, verified and uniformed guards for access control, perimeter protection and asset safety.", img: "/images/service-security-guard.png" },
-  { title: "Security Supervisors", desc: "On-site supervision, shift management, reporting and discipline enforcement.", img: "/images/service-facility-manager.png" },
-  { title: "Security Officers", desc: "Experienced officers for large premises, escalation handling and client liaison.", img: "/images/service-investigation.png" },
-  { title: "Access Control", desc: "Gate management, biometric/RFID coordination and authorized-entry protocols.", img: "/images/service-helpdesk.png" },
-  { title: "Visitor Management", desc: "Verification, visitor passes, logs and escort protocols.", img: "/images/guard-visitor-control.png" },
-  { title: "Vehicle Verification", desc: "Entry/exit logging, parking discipline and anti-tailgating vigilance.", img: "/images/mumbai-business-district.png" },
-  { title: "Patrolling", desc: "Foot and perimeter patrols with scheduled and random checks.", img: "/images/service-dog-squad.png" },
-  { title: "CCTV Monitoring", desc: "Control-room vigilance, incident flagging and evidence preservation.", img: "/images/team-inspection.png" },
-];
+export async function generateMetadata() {
+  const mod = await import("../services/[slug]/page");
+  return mod.generateMetadata({ params: Promise.resolve({ slug: "security-services" }) });
+}
 
-export default function SecurityPage() {
-  return (
-    <>
-      <PageHero
-        eyebrow="Security Services"
-        title={`Professional Security.\nProactive Protection.`}
-        subtitle="Comprehensive manned guarding, supervision and technology-supported security for residential, corporate, industrial and institutional premises."
-        image="/images/hero-mumbai-security.png"
-        cta={{ label: "Request Security Assessment", href: "/contact" }}
-      />
-
-      <section className="py-16 bg-white">
-        <div className="max-w-[1280px] mx-auto px-6">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
-            {services.map((s) => (
-              <div key={s.title} className="border border-slate-100 hover:shadow-xl hover:border-[#C5A253]/20 transition overflow-hidden group bg-white">
-                <div className="h-40 overflow-hidden">
-                  <img src={s.img} alt={s.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-700" />
-                </div>
-                <div className="p-5">
-                  <h3 className="text-[#0A1931] font-bold text-sm uppercase tracking-wide">{s.title}</h3>
-                  <p className="text-slate-500 text-sm leading-relaxed mt-2">{s.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-14 bg-[#F8FAFC] border-y border-slate-100">
-        <div className="max-w-[1280px] mx-auto px-6">
-          <h2 className="text-[#0A1931] font-black text-2xl">Deployment Environments</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
-            {[
-              ["Residential Society Security", "Gate control, visitor screening, night patrols."],
-              ["Corporate Security", "Reception liaison, floor patrols, executive protection."],
-              ["Industrial Security", "Perimeter, material gate, contractor verification."],
-              ["Warehouse Security", "Inventory gate, CCTV, dock supervision."],
-              ["Construction Site Security", "Material, labour and equipment protection overnight."],
-              ["Emergency Response", "Incident escalation, first-response and coordination."],
-              ["Retail & Mall Security", "Crowd and asset protection, loss prevention support."],
-              ["Institutional Security", "Schools, hospitals and campuses — safety first."],
-            ].map(([t, d]) => (
-              <div key={t} className="bg-white border border-slate-100 p-6">
-                <div className="text-[#0A1931] font-bold text-sm">{t}</div>
-                <div className="text-slate-500 text-sm mt-2">{d}</div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-10 flex flex-wrap gap-3">
-            <Link href="/contact" className="bg-[#0A1931] text-white px-7 py-3.5 text-xs tracking-[0.16em] uppercase font-bold">Request Security Assessment</Link>
-            <a href="tel:9323581437" className="border border-slate-300 px-7 py-3.5 text-xs tracking-[0.16em] uppercase font-bold text-[#0A1931]">Call 9323581437</a>
-          </div>
-        </div>
-      </section>
-    </>
-  );
+export default async function Page() {
+  const mod = await import("../services/[slug]/page");
+  return mod.default({ params: Promise.resolve({ slug: "security-services" }) });
 }

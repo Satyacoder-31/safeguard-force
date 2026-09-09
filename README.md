@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SAFE Guard FORCE — Website + CMS
 
-## Getting Started
+The public SAFE Guard FORCE website (Next.js 16 App Router) with a complete **Supabase-powered CMS**: edit every piece of website content from `/admin` — no code, no redeploy.
 
-First, run the development server:
+- **Public site:** navy/gold identity, hero slideshow, 12 services, industries, about, contact — all content from Supabase.
+- **Admin panel:** dashboard, site settings, navigation, homepage sections, hero slides, services + detail items, industries, about, values, testimonials, statistics, media library, enquiry inbox, admin users, activity logs.
+- **Secure:** Supabase Auth + roles (super_admin / editor), Row Level Security on every table, service-role key confined to server code.
+
+## Quick start
+
+```bash
+npm install
+cp .env.example .env.local    # fill in your Supabase URL + keys
+```
+
+Set up the database (one-time): see **[SUPABASE_SETUP.md](./SUPABASE_SETUP.md)** — run the 4 SQL migrations in the Supabase SQL Editor, then create your first admin:
+
+```bash
+set -a; source .env.local; set +a
+node scripts/create-admin.mjs admin@safeguardforce.in "StrongPassword123" "Site Owner"
+```
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Website: http://localhost:3000
+- Admin: http://localhost:3000/admin (login at `/admin/login`)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Documentation
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Doc | Purpose |
+|---|---|
+| [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) | Create project, migrations, keys, storage, first admin, Vercel deploy |
+| [ADMIN_GUIDE.md](./ADMIN_GUIDE.md) | Everyday CMS usage — editing content, media, enquiries, users |
+| [ARCHITECTURE.md](./ARCHITECTURE.md) | Data flow, caching, security model, file structure |
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
+| Command | What it does |
+|---|---|
+| `npm run dev` | Start dev server |
+| `npm run build` | Production build |
+| `npm run lint` | ESLint (passes with 0 errors) |
+| `node scripts/create-admin.mjs <email> <pass> ["Name"]` | Create/promote a super admin |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Environment variables
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Variable | Where it's used |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Everywhere (public project URL) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Browser client (public by design) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server code only — never exposed to the browser |
 
-## Deploy on Vercel
+## Deployment (Vercel)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Push to GitHub, import the repo in Vercel.
+2. Add the three environment variables in Vercel → Settings → Environment Variables.
+3. Deploy. CMS edits propagate to the live site automatically via cache revalidation — no redeploys needed.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Legacy URLs preserved
+
+`/security-services`, `/facility-management`, `/housekeeping`, `/fire-safety`, `/technical-maintenance`, `/detective-services` all render their CMS-driven service pages; new canonical routes live at `/services/<slug>`.

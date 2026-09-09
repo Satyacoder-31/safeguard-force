@@ -1,49 +1,17 @@
 import Link from "next/link";
 import HeroSlideshow from "./components/HeroSlideshow";
+import { getSiteSettings, getNavigation, getHeroSlides, getStatistics, getServices, getIndustries, getHomepageSections } from "@/lib/cms/queries";
+import { telHref } from "@/lib/utils";
+import type { SiteSettings, Statistic } from "@/types/database";
 
-export const metadata = {
-  title: "SAFE Guard FORCE | Integrated Security & Facility Management Mumbai",
-  description: "Integrated security, facility management, housekeeping, technical maintenance, STP operations & investigation solutions for residential, commercial and institutional environments. Mumbai • Nationwide Capability.",
-};
-
-const services = [
-  { title: "Security Services", desc: "Trained & verified guards, supervisors, officers, bouncers, access control and patrolling.", icon: "shield", img: "/images/service-security-guard.png" },
-  { title: "Facility Management", desc: "Society & facility managers, supervisors, inspections and vendor coordination.", icon: "building", img: "/images/service-facility-manager.png" },
-  { title: "Housekeeping", desc: "Cleaning, sanitization, waste management and hygiene maintenance.", icon: "sparkles", img: "/images/service-housekeeping.png" },
-  { title: "Gardening & Landscaping", desc: "Lawn, garden, irrigation, pruning and landscape maintenance.", icon: "leaf", img: "/images/service-gardening.png" },
-  { title: "Fire & Safety", desc: "Fire marshals, inspections, evacuation planning and safety training.", icon: "flame", img: "/images/service-fire-safety.png" },
-  { title: "Dog Squad", desc: "Trained sniffer dogs & handlers for patrol and detection.", icon: "paw", img: "/images/service-dog-squad.png" },
-  { title: "Event Security", desc: "Crowd control, VIP protection and venue entry management.", icon: "users", img: "/images/service-event-security.png" },
-  { title: "Technical Maintenance", desc: "Electrical, plumbing, HVAC, civil and infrastructure support.", icon: "wrench", img: "/images/service-technical.png" },
-  { title: "Pest Control", desc: "Mosquito, termite, cockroach and rodent management.", icon: "bug", img: "/images/service-pest-control.png" },
-  { title: "Reception & Helpdesk", desc: "Receptionists, helpdesk, pantry and office support staff.", icon: "headset", img: "/images/service-helpdesk.png" },
-  { title: "Detective Services", desc: "Confidential investigations, verification and surveillance.", icon: "search", img: "/images/service-investigation.png" },
-  { title: "STP Operations", desc: "Sewage treatment plant operation, maintenance & compliance.", icon: "droplet", img: "/images/service-stp.png" },
-];
-
-const whyChoose = [
-  { title: "Trained & Verified Personnel", desc: "Screened, trained and supervised manpower aligned to your premises and risks." },
-  { title: "Experienced Management", desc: "Structured supervision with regular inspections and reporting discipline." },
-  { title: "24/7 Assistance", desc: "Prompt response and round-the-clock operational support." },
-  { title: "Regular Site Inspections", desc: "Quality checks, audits and continuous improvement cycles." },
-  { title: "Customized Packages", desc: "Solutions tailored to property type, occupancy and operational needs." },
-  { title: "Integrated Under One Roof", desc: "Security, facility, technical, STP and investigation — one accountable partner." },
-];
-
-const industries = [
-  { name: "Residential Societies", img: "/images/hero-mumbai-security.png" },
-  { name: "Corporate Offices", img: "/images/team-inspection.png" },
-  { name: "Commercial Complexes", img: "/images/mumbai-business-district.png" },
-  { name: "Malls", img: "/images/mumbai-business-district.png" },
-  { name: "Hospitals", img: "/images/hospital-security.png" },
-  { name: "Hotels", img: "/images/hero-mumbai-security.png" },
-  { name: "Schools", img: "/images/hospital-security.png" },
-  { name: "Factories", img: "/images/technical-maintenance.png" },
-  { name: "Warehouses", img: "/images/technical-maintenance.png" },
-  { name: "Construction Sites", img: "/images/technical-maintenance.png" },
-  { name: "Events", img: "/images/fire-event-safety.png" },
-  { name: "Institutions", img: "/images/hospital-security.png" },
-];
+export async function generateMetadata() {
+  const settings = await getSiteSettings();
+  return {
+    title: `${settings.site_name} | Integrated Security & Facility Management Mumbai`,
+    description:
+      "Integrated security, facility management, housekeeping, technical maintenance, STP operations & investigation solutions for residential, commercial and institutional environments. Mumbai • Nationwide Capability.",
+  };
+}
 
 function Icon({ name }: { name: string }) {
   const cls = "w-5 h-5";
@@ -64,55 +32,127 @@ function Icon({ name }: { name: string }) {
   return map[name] || null;
 }
 
-export default function HomePage() {
+function statsByContext(stats: Statistic[], context: Statistic["context"]) {
+  return stats.filter((s) => s.context === context);
+}
+
+export default async function HomePage() {
+  const [settings, heroSlides, allStats, services, industries, sections] =
+    await Promise.all([
+      getSiteSettings(),
+      getHeroSlides(),
+      getStatistics(),
+      getServices(),
+      getIndustries(),
+      getHomepageSections(),
+    ]);
+
+  const section = (key: string) => sections.find((s) => s.section_key === key);
+  const visible = (key: string) => {
+    const s = section(key);
+    return s?.is_visible !== false && sections.some((x) => x.section_key === key);
+  };
+
+  const trust = section("trust_intro");
+  const servicesSec = section("services");
+  const whySec = section("why_choose_us");
+  const processSec = section("process");
+  const industriesSec = section("industries");
+  const personnelSec = section("personnel");
+  const ctaSec = section("final_cta");
+
+  const featuredServices = services.filter((s) => s.is_featured);
+  const featuredIndustries = industries.filter((i) => i.is_featured);
+  const trustStats = statsByContext(allStats, "trust");
+  const bandStats = statsByContext(allStats, "stats_band");
+  const heroBarStats = statsByContext(allStats, "hero_bar");
+
   return (
     <>
-      <HeroSlideshow />
+      <HeroSlideshow slides={heroSlides} heroBarStats={heroBarStats} settings={settings} />
+
+      {/* Corporate Motto & Brochure Banner */}
+      <section className="bg-[#070F1F] border-y border-white/10 text-white py-4 sm:py-5">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6">
+          <div className="flex items-center gap-3 sm:gap-4 text-center md:text-left">
+            <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[#C5A253] shrink-0">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div>
+              <div className="text-[#C5A253] text-[9.5px] sm:text-[10.5px] tracking-[0.24em] sm:tracking-[0.28em] uppercase font-bold">
+                SAFE GUARD FORCE CORPORATE MOTTO
+              </div>
+              <div className="text-white font-black text-base sm:text-xl lg:text-2xl tracking-tight mt-0.5">
+                &ldquo;{settings.tagline || "Your Security. Our Priority."}&rdquo;
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0 flex-wrap justify-center">
+            <div className="border border-white/15 bg-white/5 px-3.5 sm:px-4 py-2 text-[11px] sm:text-xs tracking-wider uppercase font-bold text-white/90">
+              <strong className="text-[#C5A253]">20+</strong> YEARS EXP
+            </div>
+            <div className="border border-white/15 bg-white/5 px-3.5 sm:px-4 py-2 text-[11px] sm:text-xs tracking-wider uppercase font-bold text-white/90">
+              <strong className="text-[#C5A253]">PASARA</strong> LIC. 293
+            </div>
+            {settings.brochure_enabled !== false && (
+              <a
+                href={settings.brochure_url || "/brochure.pdf"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-[#C5A253] hover:bg-[#B8941F] active:bg-[#A9893A] text-[#0A1931] px-5 sm:px-6 py-2.5 sm:py-2 text-[11px] sm:text-xs tracking-[0.14em] uppercase font-black transition inline-flex items-center gap-2 shadow-md min-h-[38px]"
+              >
+                <span>📄</span> VIEW BROCHURE →
+              </a>
+            )}
+          </div>
+        </div>
+      </section>
 
       {/* Trust intro */}
+      {visible("trust_intro") && trust && (
       <section className="py-10 sm:py-12 lg:py-24 bg-white">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 grid lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-16 items-center">
           <div>
             <div className="inline-flex items-center gap-2 text-[#C5A253] text-[10px] sm:text-[11px] tracking-[0.18em] sm:tracking-[0.20em] uppercase font-bold mb-3 sm:mb-4">
-              <span className="w-6 sm:w-8 h-px bg-[#C5A253]" /> Trusted Integrated Partner
+              <span className="w-6 sm:w-8 h-px bg-[#C5A253]" /> {trust.eyebrow}
             </div>
-            <h2 className="text-[#0A1931] font-black text-[28px] sm:text-[32px] lg:text-[44px] leading-[0.92] sm:leading-[0.95] tracking-[-0.02em]">
-              A Safer, Smarter<br />
-              <span className="italic font-light text-[#C5A253]">& Better Managed</span><br />
-              Tomorrow.
+            <h2 className="text-[#0A1931] font-black text-[28px] sm:text-[32px] lg:text-[44px] leading-[0.92] sm:leading-[0.95] tracking-[-0.02em] whitespace-pre-line">
+              {trust.title}
             </h2>
             <p className="text-slate-600 text-[14px] sm:text-[15px] leading-relaxed mt-4 sm:mt-6">
-              SAFE Guard FORCE combines security, facility management, housekeeping, technical services, STP operations and investigation capabilities under one professional organization — delivering disciplined execution, accountable supervision and customized solutions for every premises.
+              {trust.subtitle}
             </p>
             <p className="text-slate-500 text-[13px] sm:text-sm leading-relaxed mt-3 sm:mt-4">
-              From residential societies and corporate towers to hospitals, hotels, factories and large events — we protect people, manage properties, maintain operations and ensure cleaner, healthier environments.
+              {trust.description}
             </p>
             <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-6 sm:mt-8">
-              {[
-                ["24/7", "Support"],
-                ["Pan-Mumbai", "Presence"],
-                ["One-Roof", "Solutions"],
-              ].map(([a, b]) => (
+              {(trustStats.length > 0
+                ? trustStats.map((s) => [s.value, s.label])
+                : [["24/7", "Support"], ["Pan-Mumbai", "Presence"], ["One-Roof", "Solutions"]]
+              ).map(([a, b]) => (
                 <div key={a} className="border border-slate-200 px-2 sm:px-4 py-3 sm:py-4 text-center">
                   <div className="text-[#0A1931] font-black text-xs sm:text-sm">{a}</div>
                   <div className="text-slate-500 text-[10px] sm:text-xs tracking-widest uppercase font-semibold">{b}</div>
                 </div>
               ))}
             </div>
-            <Link href="/about" className="inline-flex mt-6 sm:mt-8 border border-[#0A1931] text-[#0A1931] hover:bg-[#0A1931] hover:text-white active:bg-[#0A1931] active:text-white px-6 sm:px-7 py-3 sm:py-3.5 text-xs tracking-[0.16em] uppercase font-bold transition min-h-[44px] items-center touch-manipulation">
-              Discover Our Approach
-            </Link>
+            {trust.button_text && (
+              <Link href={trust.button_url || "/about"} className="inline-flex mt-6 sm:mt-8 border border-[#0A1931] text-[#0A1931] hover:bg-[#0A1931] hover:text-white active:bg-[#0A1931] active:text-white px-6 sm:px-7 py-3 sm:py-3.5 text-xs tracking-[0.16em] uppercase font-bold transition min-h-[44px] items-center touch-manipulation">
+                {trust.button_text}
+              </Link>
+            )}
           </div>
           <div className="relative">
             <div className="relative overflow-hidden border border-slate-200">
-              <img src="/images/hero-mumbai-security.png" alt="SAFE Guard FORCE personnel in ceremonial uniform" className="w-full h-[380px] sm:h-[440px] lg:h-[520px] object-cover object-top" />
+              <img src={trust.image_url || "/images/hero-mumbai-security.png"} alt="SAFE Guard FORCE personnel in ceremonial uniform" className="w-full h-[380px] sm:h-[440px] lg:h-[520px] object-cover object-top" />
               <div className="absolute top-3 sm:top-4 left-3 sm:left-4 bg-transparent">
-                <img src="/images/safelogo.png" alt="Badge" className="w-10 h-10 sm:w-14 sm:h-14 object-contain" />
+                <img src={settings.logo_url || "/images/safelogo.png"} alt="Badge" className="w-10 h-10 sm:w-14 sm:h-14 object-contain" />
               </div>
               <div className="absolute bottom-0 left-0 right-0 bg-[#0A1931] p-4 sm:p-6 flex items-center justify-between gap-2">
                 <div className="min-w-0">
-                  <div className="text-[#C5A253] text-[10px] sm:text-xs tracking-widest uppercase font-bold">Trained & Verified Personnel</div>
-                  <div className="text-white text-xs sm:text-sm mt-1 leading-tight">C 517, Kailash Esplanade • Ghatkopar West</div>
+                  <div className="text-[#C5A253] text-[10px] sm:text-xs tracking-widest uppercase font-bold">Trained &amp; Verified Personnel</div>
+                  <div className="text-white text-xs sm:text-sm mt-1 leading-tight">{settings.address_line_1} • {settings.city}</div>
                 </div>
                 <div className="w-8 h-8 sm:w-10 sm:h-10 border border-white/20 flex items-center justify-center text-white shrink-0">→</div>
               </div>
@@ -128,54 +168,58 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Core Services */}
+      {visible("services") && (
       <section className="py-10 sm:py-12 lg:py-20 bg-[#F8FAFC] border-t border-slate-100">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 sm:gap-6 mb-6 sm:mb-10">
             <div>
-              <div className="text-[#C5A253] text-[10px] sm:text-[11px] tracking-[0.18em] sm:tracking-[0.20em] uppercase font-bold mb-2 sm:mb-3">12 Integrated Capabilities</div>
-              <h2 className="text-[#0A1931] font-black text-[26px] sm:text-[30px] lg:text-[42px] leading-none tracking-tight">Core Services</h2>
-              <p className="text-slate-500 text-[13px] sm:text-sm mt-2 sm:mt-3 max-w-[560px]">One accountable partner for security, facility, hygiene, technical and investigation needs — customized to your environment.</p>
+              <div className="text-[#C5A253] text-[10px] sm:text-[11px] tracking-[0.18em] sm:tracking-[0.20em] uppercase font-bold mb-2 sm:mb-3">{servicesSec?.eyebrow}</div>
+              <h2 className="text-[#0A1931] font-black text-[26px] sm:text-[30px] lg:text-[42px] leading-none tracking-tight">{servicesSec?.title}</h2>
+              <p className="text-slate-500 text-[13px] sm:text-sm mt-2 sm:mt-3 max-w-[560px]">{servicesSec?.subtitle}</p>
             </div>
-            <Link href="/security-services" className="hidden lg:inline-flex border border-slate-300 hover:border-[#0A1931] hover:bg-[#0A1931] hover:text-white active:bg-[#0A1931] active:text-white text-[#0A1931] px-6 py-3 text-xs tracking-[0.16em] uppercase font-bold transition min-h-[44px] items-center touch-manipulation">View All Services</Link>
+            <Link href={servicesSec?.button_url || "/security-services"} className="hidden lg:inline-flex border border-slate-300 hover:border-[#0A1931] hover:bg-[#0A1931] hover:text-white active:bg-[#0A1931] active:text-white text-[#0A1931] px-6 py-3 text-xs tracking-[0.16em] uppercase font-bold transition min-h-[44px] items-center touch-manipulation">{servicesSec?.button_text}</Link>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
-            {services.map((s) => (
-              <div key={s.title} className="group bg-white border border-slate-100 hover:border-[#C5A253]/30 hover:shadow-xl transition-all duration-300 overflow-hidden">
+            {featuredServices.map((s) => (
+              <Link key={s.id} href={`/services/${s.slug}`} className="group bg-white border border-slate-100 hover:border-[#C5A253]/30 hover:shadow-xl transition-all duration-300 overflow-hidden">
                 <div className="h-36 overflow-hidden relative">
-                  <img src={s.img} alt={s.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-700" />
+                  <img src={s.card_image_url} alt={s.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-700" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0A1931]/60 to-transparent" />
                   <div className="absolute top-3 left-3 w-9 h-9 bg-white/95 backdrop-blur flex items-center justify-center text-[#0A1931] group-hover:bg-[#C5A253] group-hover:text-white transition">
-                    <Icon name={s.icon} />
+                    <Icon name={s.icon_name} />
                   </div>
                 </div>
                 <div className="p-5">
-                  <h3 className="text-[#0A1931] font-bold text-[13px] tracking-[0.04em] uppercase">{s.title}</h3>
-                  <p className="text-slate-500 text-[13px] leading-relaxed mt-2 line-clamp-3">{s.desc}</p>
+                  <h3 className="text-[#0A1931] font-bold text-[13px] tracking-[0.04em] uppercase">{s.name}</h3>
+                  <p className="text-slate-500 text-[13px] leading-relaxed mt-2 line-clamp-3">{s.short_description}</p>
                   <div className="mt-4 flex items-center gap-2 text-[#C5A253] text-[11px] tracking-[0.14em] uppercase font-bold">
                     Learn More <span className="group-hover:translate-x-1 transition">→</span>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
       </section>
+      )}
 
       {/* Why Choose */}
+      {visible("why_choose_us") && whySec && (
       <section className="py-10 sm:py-12 lg:py-20 bg-[#0A1931] relative overflow-hidden">
         <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "url(/images/mumbai-business-district.png)", backgroundSize: "cover" }} />
         <div className="relative max-w-[1280px] mx-auto px-4 sm:px-6">
           <div className="max-w-[640px] mb-6 sm:mb-10">
-            <div className="text-[#C5A253] text-[10px] sm:text-[11px] tracking-[0.18em] sm:tracking-[0.20em] uppercase font-bold mb-2 sm:mb-3">Why Organizations Trust Us</div>
-            <h2 className="text-white font-black text-[24px] sm:text-[30px] lg:text-[42px] leading-none tracking-tight">Why Organizations Trust <span className="text-[#C5A253] italic font-light">SAFE Guard FORCE</span></h2>
+            <div className="text-[#C5A253] text-[10px] sm:text-[11px] tracking-[0.18em] sm:tracking-[0.20em] uppercase font-bold mb-2 sm:mb-3">{whySec.eyebrow}</div>
+            <h2 className="text-white font-black text-[24px] sm:text-[30px] lg:text-[42px] leading-none tracking-tight whitespace-pre-line">Why Organizations Trust <span className="text-[#C5A253] font-black italic">SAFE Guard FORCE</span></h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-            {whyChoose.map((f, i) => (
-              <div key={f.title} className="bg-white/[0.06] backdrop-blur border border-white/10 p-7 hover:bg-white/[0.09] hover:border-[#C5A253]/30 transition">
-                <div className="w-10 h-10 bg-[#C5A253] flex items-center justify-center text-[#0A1931] font-black text-sm mb-5">0{i + 1}</div>
+            {whySec.items.map((f, i) => (
+              <div key={f.title ?? i} className="bg-white/[0.06] backdrop-blur border border-white/10 p-7 hover:bg-white/[0.09] hover:border-[#C5A253]/30 transition">
+                <div className="w-10 h-10 bg-[#C5A253] flex items-center justify-center text-[#0A1931] font-black text-sm mb-5">{String(i + 1).padStart(2, "0")}</div>
                 <h3 className="text-white font-bold text-sm tracking-wide">{f.title}</h3>
                 <p className="text-white/60 text-sm leading-relaxed mt-2">{f.desc}</p>
               </div>
@@ -183,28 +227,24 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* How We Work */}
+      {visible("process") && processSec && (
       <section className="py-10 sm:py-12 lg:py-20 bg-white">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6">
           <div className="text-center max-w-[640px] mx-auto mb-8 sm:mb-12">
-            <div className="text-[#C5A253] text-[10px] sm:text-[11px] tracking-[0.18em] sm:tracking-[0.20em] uppercase font-bold mb-2 sm:mb-3">Our Process</div>
-            <h2 className="text-[#0A1931] font-black text-[26px] sm:text-[30px] lg:text-[42px] leading-none tracking-tight">How We Work</h2>
-            <p className="text-slate-500 text-[13px] sm:text-sm mt-2 sm:mt-3">Disciplined, transparent and operationally accountable — from assessment to continuous improvement.</p>
+            <div className="text-[#C5A253] text-[10px] sm:text-[11px] tracking-[0.18em] sm:tracking-[0.20em] uppercase font-bold mb-2 sm:mb-3">{processSec.eyebrow}</div>
+            <h2 className="text-[#0A1931] font-black text-[26px] sm:text-[30px] lg:text-[42px] leading-none tracking-tight">{processSec.title}</h2>
+            <p className="text-slate-500 text-[13px] sm:text-sm mt-2 sm:mt-3">{processSec.subtitle}</p>
           </div>
 
           <div className="relative">
             {/* line desktop */}
             <div className="hidden lg:block absolute top-[34px] left-[5%] right-[5%] h-px bg-slate-200" />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
-              {[
-                { n: "01", t: "Understand", d: "Understand property, risks and operational requirements." },
-                { n: "02", t: "Assess", d: "Conduct site assessment and identify service requirements." },
-                { n: "03", t: "Plan", d: "Develop customized manpower and operational plan." },
-                { n: "04", t: "Deploy", d: "Deploy trained personnel, supervisors and technical teams." },
-                { n: "05", t: "Monitor", d: "Inspections, reporting, quality checks and continuous improvement." },
-              ].map((s) => (
-                <div key={s.n} className="relative text-center lg:text-left bg-[#F8FAFC] lg:bg-white border border-slate-100 p-6 lg:p-0 lg:border-0">
+              {processSec.items.map((s) => (
+                <div key={s.n ?? s.t} className="relative text-center lg:text-left bg-[#F8FAFC] lg:bg-white border border-slate-100 p-6 lg:p-0 lg:border-0">
                   <div className="w-16 h-16 mx-auto lg:mx-0 bg-[#0A1931] text-white flex items-center justify-center font-black text-sm relative z-10 border-4 border-white lg:border-0 shadow-lg">
                     {s.n}
                   </div>
@@ -217,22 +257,24 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Industries */}
+      {visible("industries") && (
       <section className="py-10 sm:py-12 lg:py-20 bg-[#F8FAFC] border-y border-slate-100">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-3 sm:gap-4 mb-6 sm:mb-10">
             <div>
-              <div className="text-[#C5A253] text-[10px] sm:text-[11px] tracking-[0.18em] sm:tracking-[0.20em] uppercase font-bold mb-2 sm:mb-3">Where We Serve</div>
-              <h2 className="text-[#0A1931] font-black text-[26px] sm:text-[30px] lg:text-[42px] leading-none tracking-tight">Industries We Serve</h2>
+              <div className="text-[#C5A253] text-[10px] sm:text-[11px] tracking-[0.18em] sm:tracking-[0.20em] uppercase font-bold mb-2 sm:mb-3">{industriesSec?.eyebrow}</div>
+              <h2 className="text-[#0A1931] font-black text-[26px] sm:text-[30px] lg:text-[42px] leading-none tracking-tight">{industriesSec?.title}</h2>
             </div>
-            <Link href="/industries" className="text-[#0A1931] text-xs tracking-[0.16em] uppercase font-bold border-b-2 border-[#C5A253] pb-1 self-start lg:self-auto min-h-[32px] flex items-center touch-manipulation">Explore All Industries →</Link>
+            <Link href={industriesSec?.button_url || "/industries"} className="text-[#0A1931] text-xs tracking-[0.16em] uppercase font-bold border-b-2 border-[#C5A253] pb-1 self-start lg:self-auto min-h-[32px] flex items-center touch-manipulation">{industriesSec?.button_text}</Link>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-            {industries.map((ind) => (
-              <Link key={ind.name} href="/industries" className="group relative h-[148px] sm:h-[160px] lg:h-[200px] overflow-hidden bg-[#0A1931] touch-manipulation">
-                <img src={ind.img} alt={ind.name} className="w-full h-full object-cover group-hover:scale-105 group-active:scale-105 transition duration-700 opacity-90" />
+            {featuredIndustries.map((ind) => (
+              <Link key={ind.id} href="/industries" className="group relative h-[148px] sm:h-[160px] lg:h-[200px] overflow-hidden bg-[#0A1931] touch-manipulation">
+                <img src={ind.image_url} alt={ind.name} className="w-full h-full object-cover group-hover:scale-105 group-active:scale-105 transition duration-700 opacity-90" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#070F1F] via-[#070F1F]/20 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-2.5 sm:p-4">
                   <div className="text-white font-bold text-xs sm:text-sm leading-tight">{ind.name}</div>
@@ -244,54 +286,50 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Our Personnel - Real Team */}
+      {visible("personnel") && personnelSec && (
       <section className="py-10 sm:py-12 lg:py-16 bg-white">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 grid lg:grid-cols-2 gap-8 sm:gap-12 items-center">
           <div className="relative order-2 lg:order-1">
-            <img src="/images/hero-mumbai-security.png" alt="SAFE Guard FORCE guard" className="w-full h-[380px] sm:h-[440px] lg:h-[520px] object-cover object-top border border-slate-200" />
+            <img src={personnelSec.image_url || "/images/hero-mumbai-security.png"} alt="SAFE Guard FORCE guard" className="w-full h-[380px] sm:h-[440px] lg:h-[520px] object-cover object-top border border-slate-200" />
             <div className="absolute -bottom-4 -right-4 hidden lg:flex bg-[#0A1931] border-2 border-white shadow-xl p-5 items-center gap-4">
-              <img src="/images/safelogo.png" alt="Logo" className="w-16 h-16 object-contain" />
+              <img src={settings.logo_url || "/images/safelogo.png"} alt="Logo" className="w-16 h-16 object-contain" />
               <div>
-                <div className="text-[#C5A253] text-xs tracking-[0.18em] uppercase font-bold">Your Security.</div>
+                <div className="text-[#C5A253] text-xs tracking-[0.18em] uppercase font-bold">{settings.tagline}</div>
                 <div className="text-white font-black text-sm tracking-wide">OUR PRIORITY.</div>
                 <div className="text-white/60 text-xs mt-1">Disciplined • Verified • Presentable</div>
               </div>
             </div>
             {/* Mobile badge */}
             <div className="flex lg:hidden bg-[#0A1931] p-3 items-center gap-3 mt-0 border-t-0 border border-slate-200 border-t-0">
-              <img src="/images/safelogo.png" alt="Logo" className="w-10 h-10 object-contain shrink-0" />
+              <img src={settings.logo_url || "/images/safelogo.png"} alt="Logo" className="w-10 h-10 object-contain shrink-0" />
               <div>
-                <div className="text-[#C5A253] text-[10px] tracking-[0.16em] uppercase font-bold">Your Security. Our Priority.</div>
+                <div className="text-[#C5A253] text-[10px] tracking-[0.16em] uppercase font-bold">{settings.tagline}</div>
                 <div className="text-white/70 text-xs">Disciplined • Verified • Presentable</div>
               </div>
             </div>
           </div>
           <div className="order-1 lg:order-2">
-            <div className="text-[#C5A253] text-[10px] sm:text-[11px] tracking-[0.18em] sm:tracking-[0.20em] uppercase font-bold mb-2 sm:mb-3">Our Personnel</div>
-            <h2 className="text-[#0A1931] font-black text-[24px] sm:text-[28px] lg:text-[38px] leading-none tracking-tight">
-              Disciplined Personnel.<br />
-              <span className="italic font-light text-[#C5A253]">Professional Appearance.</span>
+            <div className="text-[#C5A253] text-[10px] sm:text-[11px] tracking-[0.18em] sm:tracking-[0.20em] uppercase font-bold mb-2 sm:mb-3">{personnelSec.eyebrow}</div>
+            <h2 className="text-[#0A1931] font-black text-[24px] sm:text-[28px] lg:text-[38px] leading-none tracking-tight whitespace-pre-line">
+              {personnelSec.title}
             </h2>
             <p className="text-slate-600 text-[13px] sm:text-[15px] leading-relaxed mt-4 sm:mt-5">
-              Every SAFE Guard FORCE guard is screened, trained and kitted for the premises they protect — from ceremonial bearing to operational vigilance. White gloves, beret with insignia, SAFE-branded belt and disciplined posture reflect the standards we enforce daily.
+              {personnelSec.subtitle}
             </p>
             <ul className="mt-5 sm:mt-6 space-y-2.5 sm:space-y-3">
-              {[
-                "Uniform discipline & grooming checks",
-                "Verified antecedents & supervised deployment",
-                "Ceremonial and operational readiness",
-                "Client-facing courtesy with firm access control",
-              ].map((t) => (
-                <li key={t} className="flex gap-2.5 sm:gap-3 text-[13px] sm:text-sm text-slate-700">
+              {personnelSec.items.map((t, i) => (
+                <li key={typeof t === "string" ? t : i} className="flex gap-2.5 sm:gap-3 text-[13px] sm:text-sm text-slate-700">
                   <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#C5A253] text-[#0A1931] flex items-center justify-center text-[10px] sm:text-xs font-bold shrink-0">✓</span>
-                  <span className="pt-0.5 sm:pt-1">{t}</span>
+                  <span className="pt-0.5 sm:pt-1">{typeof t === "string" ? t : t.title}</span>
                 </li>
               ))}
             </ul>
             <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 mt-6 sm:mt-8">
-              <Link href="/security-services" className="bg-[#0A1931] text-white px-6 py-3.5 text-xs tracking-[0.16em] uppercase font-bold min-h-[44px] flex items-center justify-center touch-manipulation active:bg-[#132D4F]">
-                View Security Services
+              <Link href={personnelSec.button_url || "/security-services"} className="bg-[#0A1931] text-white px-6 py-3.5 text-xs tracking-[0.16em] uppercase font-bold min-h-[44px] flex items-center justify-center touch-manipulation active:bg-[#132D4F]">
+                {personnelSec.button_text}
               </Link>
               <Link href="/contact" className="border border-slate-300 px-6 py-3.5 text-xs tracking-[0.16em] uppercase font-bold text-[#0A1931] min-h-[44px] flex items-center justify-center touch-manipulation active:bg-slate-50">
                 Request Deployment
@@ -300,16 +338,20 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      )}
 
-      {/* Stats - mobile grid 2 with borders not divide-x */}
+      {/* Stats band */}
       <section className="bg-[#070F1F] py-8 sm:py-10 lg:py-16 border-t border-white/10">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 grid grid-cols-2 lg:grid-cols-4 gap-0 divide-y lg:divide-y-0 divide-white/10 lg:divide-x border border-white/10 lg:border-0">
-          {[
-            ["24/7", "Professional Assistance"],
-            ["12+", "Integrated Service Categories"],
-            ["100%", "Customized Service Approach"],
-            ["360°", "Security & Facility Solutions"],
-          ].map(([a, b]) => (
+          {(bandStats.length > 0
+            ? bandStats.map((s) => [s.value, s.label] as const)
+            : [
+                ["24/7", "Professional Assistance"],
+                ["12+", "Integrated Service Categories"],
+                ["100%", "Customized Service Approach"],
+                ["360°", "Security & Facility Solutions"],
+              ] as const
+          ).map(([a, b]) => (
             <div key={a} className="px-4 sm:px-6 py-6 sm:py-0 text-center lg:text-left border-r border-white/10 even:border-r-0 lg:even:border-r lg:border-r-0 lg:first:pl-0 odd:border-r sm:border-r-0">
               <div className="text-[#C5A253] font-black text-[28px] sm:text-[32px] lg:text-[44px] leading-none tracking-tighter">{a}</div>
               <div className="text-white/60 text-[10px] sm:text-xs tracking-[0.14em] sm:tracking-[0.16em] uppercase font-semibold mt-2 leading-tight">{b}</div>
@@ -319,29 +361,30 @@ export default function HomePage() {
       </section>
 
       {/* Final CTA */}
+      {visible("final_cta") && ctaSec && (
       <section className="relative min-h-[420px] sm:h-[420px] lg:h-[480px] overflow-hidden bg-[#070F1F] py-10 sm:py-0">
-        <img src="/images/mumbai-business-district.png" alt="Corporate building night" className="absolute inset-0 w-full h-full object-cover opacity-60" />
+        <img src={ctaSec.image_url || "/images/mumbai-business-district.png"} alt="Corporate building night" className="absolute inset-0 w-full h-full object-cover opacity-60" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#070F1F] via-[#070F1F]/80 sm:via-[#070F1F]/75 to-[#070F1F]/60 sm:to-[#070F1F]/40" />
         <div className="relative z-10 h-full min-h-[420px] sm:min-h-0 max-w-[1280px] mx-auto px-4 sm:px-6 flex flex-col justify-center py-8 sm:py-0">
           <div className="max-w-[640px]">
-            <h2 className="text-white font-black text-[26px] sm:text-[30px] lg:text-[44px] leading-[0.92] sm:leading-[0.95] tracking-tight">
-              Your Property Deserves<br />
-              <span className="text-[#C5A253] italic font-light">More Than Basic Security.</span>
+            <h2 className="text-white font-black text-[26px] sm:text-[30px] lg:text-[44px] leading-[0.92] sm:leading-[0.95] tracking-tight whitespace-pre-line">
+              {ctaSec.title}
             </h2>
             <p className="text-white/75 sm:text-white/70 text-[13px] sm:text-sm leading-relaxed mt-3 sm:mt-4 max-w-[520px]">
-              Partner with SAFE Guard FORCE for professional security, facility management, technical maintenance, STP operations and confidential investigation solutions.
+              {ctaSec.subtitle}
             </p>
             <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 mt-6 sm:mt-8">
-              <Link href="/contact" className="inline-flex items-center justify-center gap-2 bg-[#C5A253] hover:bg-[#D4AF37] active:bg-[#B8941F] text-[#070F1F] px-6 sm:px-8 py-3.5 sm:py-4 text-xs tracking-[0.16em] uppercase font-bold transition min-h-[48px] touch-manipulation">
-                Request a Consultation →
+              <Link href={ctaSec.button_url || "/contact"} className="inline-flex items-center justify-center gap-2 bg-[#C5A253] hover:bg-[#D4AF37] active:bg-[#B8941F] text-[#070F1F] px-6 sm:px-8 py-3.5 sm:py-4 text-xs tracking-[0.16em] uppercase font-bold transition min-h-[48px] touch-manipulation">
+                {ctaSec.button_text}
               </Link>
-              <a href="tel:9323581437" className="inline-flex items-center justify-center border border-white/30 hover:bg-white hover:text-[#070F1F] active:bg-white active:text-[#070F1F] text-white px-6 sm:px-8 py-3.5 sm:py-4 text-xs tracking-[0.16em] uppercase font-bold transition min-h-[48px] touch-manipulation">
-                Call Now — 9323581437
+              <a href={telHref(settings.primary_phone)} className="inline-flex items-center justify-center border border-white/30 hover:bg-white hover:text-[#070F1F] active:bg-white active:text-[#070F1F] text-white px-6 sm:px-8 py-3.5 sm:py-4 text-xs tracking-[0.16em] uppercase font-bold transition min-h-[48px] touch-manipulation">
+                Call Now — {settings.primary_phone}
               </a>
             </div>
           </div>
         </div>
       </section>
+      )}
     </>
   );
 }
