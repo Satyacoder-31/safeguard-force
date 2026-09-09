@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import FloatingActions from "./components/FloatingActions";
+import PublicShell from "./components/PublicShell";
 import { getSiteSettings, getNavigation } from "@/lib/cms/queries";
 
 const manrope = Manrope({
@@ -58,13 +59,14 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className={`${manrope.variable} ${inter.variable} scroll-smooth`}>
-      <body className="min-h-screen flex flex-col bg-white antialiased pb-[60px] lg:pb-0">
-        <Header settings={settings} navigation={navigation} />
-        <main className="flex-1">{children}</main>
-        <Footer settings={settings} />
-        <FloatingActions settings={settings} />
-        {/* Legal disclaimer bar */}
-        <div className="hidden" />
+      <body className="antialiased bg-slate-50 text-slate-900 selection:bg-[#C5A253] selection:text-[#0A1931]">
+        <PublicShell
+          header={<Header settings={settings} navigation={navigation} />}
+          footer={<Footer settings={settings} />}
+          floatingActions={<FloatingActions settings={settings} />}
+        >
+          {children}
+        </PublicShell>
       </body>
     </html>
   );
