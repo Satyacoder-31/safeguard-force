@@ -12,11 +12,11 @@ interface PublicShellProps {
 
 /**
  * PublicShell conditionally renders the public website Header, Footer,
- * and Floating Actions only for non-admin routes.
+ * and Floating Actions only for public/visitor routes.
  *
- * For any route under /admin (including /admin/login and all dashboard pages),
- * it strips out the public header, footer, and floating action buttons,
- * providing a completely isolated and optimized environment for administrators.
+ * For all admin routes (including /admin/login and the entire protected /admin/* dashboard),
+ * public navigation and footer are completely stripped out to give an isolated,
+ * distraction-free, and optimized admin console experience.
  */
 export default function PublicShell({
   header,
