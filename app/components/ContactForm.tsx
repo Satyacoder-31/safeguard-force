@@ -34,14 +34,7 @@ export default function ContactForm({
         message: String(formData.get("message") ?? ""),
         website: String(formData.get("website") ?? ""),
       };
-      // Client IP is read server-side inside the action via headers().
-      const { headers } = await import("next/headers");
-      const h = await headers();
-      const ip =
-        h.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-        h.get("x-real-ip") ||
-        "unknown";
-      return submitEnquiry(payload, ip);
+      return submitEnquiry(payload);
     },
     null,
   );

@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { enquirySchema, flattenZodErrors, type EnquiryInput } from "@/lib/validation";
 import { logActivity } from "@/lib/cms/logs";
@@ -25,18 +26,37 @@ function isRateLimited(ip: string): boolean {
 
 export async function submitEnquiry(
   input: EnquiryInput,
-  ip: string,
+  clientIp?: string,
 ): Promise<SubmitEnquiryResult> {
   // Honeypot: bots fill hidden fields — pretend success without saving.
   if (input.website) {
     return { ok: true, id: "ignored" };
   }
 
+  let ip = clientIp || "unknown";
+  if (ip === "unknown") {
+    try {
+      const h = await headers();
+      ip =
+        h.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+        h.get("x-real-ip") ||
+        "unknown";
+    } catch {
+      ip = "unknown";
+    }
+  }
+
   if (isRateLimited(ip)) {
     return { ok: false, error: "Too many submissions. Please try again later or call us directly." };
   }
 
-  const parsed = enquirySchema.safeParse(input);
+  // Sanitize phone number (strip whitespace and hyphens)
+  const sanitizedInput = {
+    ...input,
+    phone: String(input.phone ?? "").replace(/[\s-]/g, ""),
+  };
+
+  const parsed = enquirySchema.safeParse(sanitizedInput);
   if (!parsed.success) {
     return { ok: false, error: "Please correct the highlighted fields.", fieldErrors: flattenZodErrors(parsed.error) };
   }
