@@ -373,17 +373,61 @@ export async function upsertService(formData: FormData): Promise<Result> {
     };
 
     let error;
+    let savedId = id;
     if (id) {
       ({ error } = await admin.from("services").update(values).eq("id", id));
     } else {
-      ({ error } = await admin.from("services").insert(values));
+      const res = await admin.from("services").insert(values).select("id").single();
+      error = res.error;
+      if (res.data) savedId = res.data.id;
     }
     if (error) throw error;
-    await logActivity({ adminUserId: profile.id, action: id ? "Updated service" : "Created service", entityType: "service", entityId: id, metadata: { name } });
+
+    // Handle custom Learn More redirect URL stored in homepage_sections
+    const redirectUrl = String(formData.get("redirect_url") || "").trim();
+    if (savedId) {
+      try {
+        const { data: sec } = await admin
+          .from("homepage_sections")
+          .select("items")
+          .eq("section_key", "services")
+          .maybeSingle();
+        type CustomItem = { service_id?: string; redirect_url?: string };
+        let items: CustomItem[] = Array.isArray(sec?.items) ? [...(sec.items as CustomItem[])] : [];
+        items = items.filter((it) => it?.service_id !== savedId);
+        if (redirectUrl) {
+          items.push({ service_id: savedId, redirect_url: redirectUrl });
+        }
+        await admin.from("homepage_sections").update({ items }).eq("section_key", "services");
+      } catch (e) {
+        console.warn("[admin] Could not update service redirect url:", e);
+      }
+    }
+
+    await logActivity({ adminUserId: profile.id, action: id ? "Updated service" : "Created service", entityType: "service", entityId: savedId || id, metadata: { name } });
     publicRevalidate();
-    return { ok: true, id };
+    return { ok: true, id: savedId || id };
   } catch (err) {
     return fail(err, "Could not save service.");
+  }
+}
+
+export async function toggleServiceFeatured(serviceId: string, isFeatured: boolean): Promise<Result> {
+  try {
+    const profile = await guard();
+    const admin = createAdminClient();
+    const { error } = await admin.from("services").update({ is_featured: isFeatured }).eq("id", serviceId);
+    if (error) throw error;
+    await logActivity({
+      adminUserId: profile.id,
+      action: isFeatured ? "Added service to homepage core services" : "Removed service from homepage core services",
+      entityType: "service",
+      entityId: serviceId,
+    });
+    publicRevalidate();
+    return { ok: true };
+  } catch (err) {
+    return fail(err, "Could not update service featured status.");
   }
 }
 

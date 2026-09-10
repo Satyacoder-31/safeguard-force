@@ -2,17 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { updateHomepageSection, toggleHomepageSection } from "@/lib/actions/admin";
+import Link from "next/link";
+import { updateHomepageSection, toggleHomepageSection, toggleServiceFeatured } from "@/lib/actions/admin";
 import { SubmitButton, showToast, Collapsible } from "../../components/ui";
 import MediaPicker from "../../components/MediaPicker";
-import type { HomepageSection } from "@/types/database";
+import type { HomepageSection, Service } from "@/types/database";
 
 const input = "w-full border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:border-[#C5A253]";
 const label = "block text-[11px] tracking-[0.14em] uppercase font-bold text-slate-500 mb-1.5";
 
 const SECTION_LABELS: Record<string, string> = {
   trust_intro: "Trust Intro (A Safer, Smarter Tomorrow)",
-  services: "Core Services Header",
+  services: "Core Services (Section Header & Cards)",
   why_choose_us: "Why Organizations Trust Us",
   process: "How We Work",
   industries: "Industries We Serve Header",
@@ -20,6 +21,148 @@ const SECTION_LABELS: Record<string, string> = {
   stats_band: "Stats Band (managed under Statistics)",
   final_cta: "Final Call-To-Action",
 };
+
+function HomepageCoreServicesEditor({ services }: { services: Service[] }) {
+  const router = useRouter();
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+
+  const featured = services
+    .filter((s) => s.is_featured)
+    .sort((a, b) => a.sort_order - b.sort_order);
+
+  const nonFeatured = services.filter((s) => !s.is_featured);
+
+  async function handleToggle(serviceId: string, willBeFeatured: boolean) {
+    setTogglingId(serviceId);
+    const res = await toggleServiceFeatured(serviceId, willBeFeatured);
+    setTogglingId(null);
+    showToast(
+      res.ok
+        ? willBeFeatured
+          ? "Service added to Homepage Core Services!"
+          : "Service removed from Homepage Core Services"
+        : res.error || "Update failed",
+      res.ok
+    );
+    if (res.ok) router.refresh();
+  }
+
+  return (
+    <div className="mt-8 pt-6 border-t-2 border-slate-200/80 space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-amber-500 text-base">★</span>
+            <h4 className="text-xs font-black uppercase tracking-widest text-[#0A1931]">
+              Homepage Core Services Cards ({featured.length} Displayed)
+            </h4>
+          </div>
+          <p className="text-xs text-slate-500 mt-0.5">
+            These services are currently featured in the Core Services grid on the Homepage. Clicking <strong>Learn More →</strong> redirects visitors to the destination URL below.
+          </p>
+        </div>
+        <Link
+          href="/admin/services"
+          className="text-[11px] font-bold uppercase tracking-wider text-[#C5A253] hover:text-[#B8941F] flex items-center gap-1 shrink-0"
+        >
+          Open Services Manager →
+        </Link>
+      </div>
+
+      {/* Featured Services List */}
+      <div className="space-y-2.5">
+        {featured.map((s, idx) => {
+          const destination = s.redirect_url || `/services/${s.slug}`;
+          return (
+            <div
+              key={s.id}
+              className="bg-amber-50/40 border border-amber-200/70 p-3.5 rounded-sm flex flex-col md:flex-row md:items-center justify-between gap-3"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="w-6 h-6 rounded-full bg-[#0A1931] text-amber-400 text-xs font-black flex items-center justify-center shrink-0">
+                  {idx + 1}
+                </span>
+                <img
+                  src={s.card_image_url}
+                  alt=""
+                  className="w-12 h-12 object-cover border border-slate-200 rounded-sm shrink-0"
+                />
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <strong className="text-sm font-bold text-[#0A1931] truncate">{s.name}</strong>
+                    <span className="text-[10px] text-slate-400 font-mono">order: {s.sort_order}</span>
+                  </div>
+                  <div className="text-xs text-slate-500 mt-0.5 flex flex-wrap items-center gap-2">
+                    <span>
+                      Learn More Link:{" "}
+                      <code className="text-[11px] font-bold text-slate-700 bg-white px-1.5 py-0.5 border border-slate-200 rounded">
+                        {destination}
+                      </code>
+                    </span>
+                    <a
+                      href={destination}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#C5A253] hover:underline font-bold text-[11px]"
+                    >
+                      View Live ↗
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 self-end md:self-center">
+                <Link
+                  href={`/admin/services`}
+                  className="px-3 py-1.5 bg-white border border-slate-300 text-[11px] font-bold uppercase tracking-wider text-slate-700 hover:border-[#0A1931] rounded-sm"
+                >
+                  Edit Page Content ↗
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => handleToggle(s.id, false)}
+                  disabled={togglingId === s.id}
+                  className="px-3 py-1.5 bg-red-50 border border-red-200 text-red-700 hover:bg-red-100 text-[11px] font-bold uppercase tracking-wider rounded-sm transition"
+                >
+                  {togglingId === s.id ? "Removing…" : "Remove from Home"}
+                </button>
+              </div>
+            </div>
+          );
+        })}
+
+        {featured.length === 0 && (
+          <p className="text-xs text-amber-800 bg-amber-50 p-4 border border-amber-200">
+            No services are currently featured on the homepage. Add services below to show them in the Core Services section.
+          </p>
+        )}
+      </div>
+
+      {/* Add non-featured service to homepage */}
+      {nonFeatured.length > 0 && (
+        <div className="bg-slate-50 border border-slate-200 p-4 rounded-sm space-y-2 mt-3">
+          <h5 className="text-[11px] font-black uppercase tracking-wider text-slate-600">
+            + Add Another Service to Homepage Core Services:
+          </h5>
+          <div className="flex flex-wrap gap-2">
+            {nonFeatured.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => handleToggle(s.id, true)}
+                disabled={togglingId === s.id}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-300 hover:border-amber-400 hover:bg-amber-50 text-xs font-semibold text-slate-700 rounded-sm transition"
+              >
+                <span>+</span>
+                <span>{s.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function SectionForm({ section }: { section: HomepageSection }) {
   const router = useRouter();
@@ -89,7 +232,13 @@ function SectionForm({ section }: { section: HomepageSection }) {
   );
 }
 
-export default function HomepageSectionsManager({ sections }: { sections: HomepageSection[] }) {
+export default function HomepageSectionsManager({
+  sections,
+  services = [],
+}: {
+  sections: HomepageSection[];
+  services?: Service[];
+}) {
   const router = useRouter();
 
   async function toggle(id: string, visible: boolean) {
@@ -114,6 +263,11 @@ export default function HomepageSectionsManager({ sections }: { sections: Homepa
           ) : (
             <SectionForm section={s} />
           )}
+
+          {s.section_key === "services" && services.length > 0 && (
+            <HomepageCoreServicesEditor services={services} />
+          )}
+
           {["stats_band"].includes(s.section_key) && (
             <div className="mt-4">
               <button
@@ -129,3 +283,4 @@ export default function HomepageSectionsManager({ sections }: { sections: Homepa
     </div>
   );
 }
+

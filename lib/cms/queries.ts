@@ -777,14 +777,35 @@ export async function getServices(activeOnly = true): Promise<Service[]> {
       try {
         let q = admin().from("services").select("*");
         if (activeOnly) q = q.eq("is_active", true);
-        const { data } = await q.order("sort_order", { ascending: true });
-        return data && data.length > 0 ? (data as Service[]) : FALLBACK_SERVICES;
+        const [{ data: servicesData }, { data: secData }] = await Promise.all([
+          q.order("sort_order", { ascending: true }),
+          admin()
+            .from("homepage_sections")
+            .select("items")
+            .eq("section_key", "services")
+            .maybeSingle(),
+        ]);
+
+        const redirects: Record<string, string> = {};
+        if (Array.isArray(secData?.items)) {
+          for (const it of secData.items as { service_id?: string; redirect_url?: string }[]) {
+            if (it?.service_id && it?.redirect_url) {
+              redirects[it.service_id] = it.redirect_url;
+            }
+          }
+        }
+
+        const list = servicesData && servicesData.length > 0 ? (servicesData as Service[]) : FALLBACK_SERVICES;
+        return list.map((s) => ({
+          ...s,
+          redirect_url: redirects[s.id] || (s as Service).redirect_url || "",
+        }));
       } catch {
         return FALLBACK_SERVICES;
       }
     },
     ["cms-services", activeOnly ? "active" : "all"],
-    { tags: [TAGS.services], revalidate: 300 },
+    { tags: [TAGS.services, TAGS.sections], revalidate: 300 },
   )();
 }
 

@@ -146,6 +146,7 @@ export type Service = {
   sort_order: number;
   is_featured: boolean;
   is_active: boolean;
+  redirect_url?: string;
   created_at: string;
   updated_at: string;
 };

@@ -184,24 +184,35 @@ export default async function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
-            {featuredServices.map((s) => (
-              <Link key={s.id} href={`/services/${s.slug}`} className="group bg-white border border-slate-100 hover:border-[#C5A253]/30 hover:shadow-xl transition-all duration-300 overflow-hidden">
-                <div className="h-36 overflow-hidden relative">
-                  <img src={s.card_image_url} alt={s.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-700" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0A1931]/60 to-transparent" />
-                  <div className="absolute top-3 left-3 w-9 h-9 bg-white/95 backdrop-blur flex items-center justify-center text-[#0A1931] group-hover:bg-[#C5A253] group-hover:text-white transition">
-                    <Icon name={s.icon_name} />
+            {featuredServices.map((s) => {
+              const targetUrl = s.redirect_url || `/services/${s.slug}`;
+              return (
+                <Link
+                  key={s.id}
+                  href={targetUrl}
+                  className="group bg-white border border-slate-100 hover:border-[#C5A253]/30 hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="h-36 overflow-hidden relative">
+                      <img src={s.card_image_url} alt={s.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-700" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0A1931]/60 to-transparent" />
+                      <div className="absolute top-3 left-3 w-9 h-9 bg-white/95 backdrop-blur flex items-center justify-center text-[#0A1931] group-hover:bg-[#C5A253] group-hover:text-white transition">
+                        <Icon name={s.icon_name} />
+                      </div>
+                    </div>
+                    <div className="p-5 pb-0">
+                      <h3 className="text-[#0A1931] font-bold text-[13px] tracking-[0.04em] uppercase">{s.name}</h3>
+                      <p className="text-slate-500 text-[13px] leading-relaxed mt-2 line-clamp-3">{s.short_description}</p>
+                    </div>
                   </div>
-                </div>
-                <div className="p-5">
-                  <h3 className="text-[#0A1931] font-bold text-[13px] tracking-[0.04em] uppercase">{s.name}</h3>
-                  <p className="text-slate-500 text-[13px] leading-relaxed mt-2 line-clamp-3">{s.short_description}</p>
-                  <div className="mt-4 flex items-center gap-2 text-[#C5A253] text-[11px] tracking-[0.14em] uppercase font-bold">
-                    Learn More <span className="group-hover:translate-x-1 transition">→</span>
+                  <div className="p-5 pt-4">
+                    <div className="flex items-center gap-2 text-[#C5A253] text-[11px] tracking-[0.14em] uppercase font-bold">
+                      Learn More <span className="group-hover:translate-x-1 transition">→</span>
+                    </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
