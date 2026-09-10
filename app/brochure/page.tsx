@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function BrochurePage() {
   const [settings, contact] = await Promise.all([getSiteSettings(), getContactSettings()]);
-  const pdfUrl = settings.brochure_url;
+  const effectivePdfUrl = settings.brochure_url || "/brochure.pdf";
 
   return (
     <>
@@ -37,17 +37,15 @@ export default async function BrochurePage() {
           </div>
 
           <div className="flex items-center gap-3 flex-wrap justify-center">
-            {pdfUrl && (
-              <a
-                href={pdfUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                download
-                className="bg-[#C5A253] hover:bg-[#D4AF37] active:bg-[#B8941F] text-[#070F1F] px-6 py-2.5 text-xs tracking-[0.16em] uppercase font-black transition inline-flex items-center gap-2 shadow-md"
-              >
-                <span>📥</span> Download PDF File
-              </a>
-            )}
+            <a
+              href={effectivePdfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              download="SAFE_GUARD_FORCE_Corporate_Brochure.pdf"
+              className="bg-[#C5A253] hover:bg-[#D4AF37] active:bg-[#B8941F] text-[#070F1F] px-6 py-2.5 text-xs tracking-[0.16em] uppercase font-black transition inline-flex items-center gap-2 shadow-md cursor-pointer"
+            >
+              <span>📥</span> Download PDF Brochure (13 Pages)
+            </a>
             <Link
               href="/contact"
               className="border border-white/30 hover:bg-white hover:text-[#070F1F] text-white px-6 py-2.5 text-xs tracking-[0.16em] uppercase font-bold transition"
@@ -147,7 +145,7 @@ export default async function BrochurePage() {
 
             <div className="grid md:grid-cols-12 gap-8 items-center">
               <div className="md:col-span-4 bg-[#0A1931] text-white p-6 rounded-sm text-center space-y-4">
-                <img src="/images/director-shashikant-shukla.png" alt="Mr. Shashikant Shukla" className="w-48 h-48 mx-auto object-cover rounded border-2 border-[#C5A253] shadow-md" />
+                <img src="/images/director-shashikant-shukla.png" alt="Mr. Shashikant Shukla - Founder & Director" className="w-52 h-60 mx-auto object-cover object-top rounded border-2 border-[#C5A253] shadow-md" />
                 <div>
                   <h3 className="font-black text-lg text-white">Mr. Shashikant Shukla</h3>
                   <p className="text-xs text-[#C5A253] uppercase font-bold tracking-wider mt-1">Founder & Director</p>
