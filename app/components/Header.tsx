@@ -113,19 +113,17 @@ export default function Header({
 
             {/* Brochure - with PDF badge and icon */}
             {settings.brochure_enabled !== false && (
-              <a
-                href={settings.brochure_url || "/brochure.pdf"}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href={settings.brochure_url || "/brochure"}
                 className="text-white/85 hover:text-[#C5A253] text-[12px] xl:text-[13px] tracking-[0.12em] uppercase font-semibold transition py-1.5 px-2.5 rounded-sm hover:bg-white/5 flex items-center gap-1.5"
-                title="Download SAFE Guard FORCE Brochure (PDF)"
+                title="View SAFE Guard FORCE Corporate Brochure"
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[#C5A253] shrink-0">
                   <path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 0 1-2 2z" />
                 </svg>
                 <span>Brochure</span>
-                <span className="text-[9px] bg-[#C5A253]/20 text-[#C5A253] border border-[#C5A253]/40 px-1.5 py-0.5 rounded font-black tracking-wider leading-none">PDF</span>
-              </a>
+                <span className="text-[9px] bg-[#C5A253]/20 text-[#C5A253] border border-[#C5A253]/40 px-1.5 py-0.5 rounded font-black tracking-wider leading-none">13 PAGES</span>
+              </Link>
             )}
           </nav>
 

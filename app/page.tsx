@@ -96,18 +96,90 @@ export default async function HomePage() {
               <strong className="text-[#C5A253]">PASARA</strong> LIC. 293
             </div>
             {settings.brochure_enabled !== false && (
-              <a
-                href={settings.brochure_url || "/brochure.pdf"}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href="/brochure"
                 className="bg-[#C5A253] hover:bg-[#B8941F] active:bg-[#A9893A] text-[#0A1931] px-5 sm:px-6 py-2.5 sm:py-2 text-[11px] sm:text-xs tracking-[0.14em] uppercase font-black transition inline-flex items-center gap-2 shadow-md min-h-[38px]"
               >
                 <span>📄</span> VIEW BROCHURE →
-              </a>
+              </Link>
             )}
           </div>
         </div>
       </section>
+
+      {/* Corporate Brochure Showcase Section */}
+      {settings.brochure_enabled !== false && (
+        <section className="py-12 lg:py-16 bg-[#070F1F] text-white border-b border-white/10 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#C5A253]/15 via-transparent to-transparent pointer-events-none" />
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 grid lg:grid-cols-12 gap-8 items-center relative z-10">
+            <div className="lg:col-span-7 space-y-4">
+              <div className="inline-flex items-center gap-2 text-[#C5A253] text-[10.5px] sm:text-[11px] tracking-[0.2em] uppercase font-bold">
+                <span className="w-8 h-px bg-[#C5A253]" /> Official Company Document
+              </div>
+              <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight">
+                {settings.brochure_title || "SAFE Guard FORCE Corporate Brochure"}
+              </h2>
+              <p className="text-white/75 text-xs sm:text-sm leading-relaxed max-w-[620px]">
+                Explore our official 13-page corporate profile covering our 20+ years track record, leadership foreword by Founder & Director Mr. Shashikant Shukla, 30-day training methodologies in Karjat & Gorakhpur, statutory compliance (PASARA License No. 293), and valued client portfolio.
+              </p>
+              <div className="flex flex-wrap items-center gap-3 pt-3">
+                <Link
+                  href="/brochure"
+                  className="bg-[#C5A253] hover:bg-[#D4AF37] text-[#070F1F] px-7 py-3.5 text-xs tracking-[0.16em] uppercase font-black transition shadow-lg inline-flex items-center gap-2"
+                >
+                  <span>📄</span> View Corporate Profile (13 Pages) →
+                </Link>
+                {settings.brochure_url && (
+                  <a
+                    href={settings.brochure_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download
+                    className="border border-white/30 hover:bg-white hover:text-[#070F1F] text-white px-7 py-3.5 text-xs tracking-[0.16em] uppercase font-bold transition inline-flex items-center gap-2"
+                  >
+                    <span>📥</span> Download PDF
+                  </a>
+                )}
+              </div>
+            </div>
+
+            <div className="lg:col-span-5">
+              <div className="bg-white/5 border border-white/15 p-6 rounded-sm space-y-4 backdrop-blur-md shadow-2xl">
+                <div className="flex items-center gap-3 border-b border-white/10 pb-4">
+                  <img src={settings.logo_url || "/images/safelogo.png"} alt="Logo" className="w-12 h-12 object-contain" />
+                  <div>
+                    <div className="text-xs font-black text-white tracking-wider">SAFE GUARD FORCE</div>
+                    <div className="text-[#C5A253] text-[10px] uppercase font-bold">13-Page Corporate Profile</div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs text-white/80">
+                  <div className="bg-white/5 p-2.5 rounded border border-white/5">
+                    <strong className="text-[#C5A253] block text-sm font-black">20+ Years</strong>
+                    Industry Experience
+                  </div>
+                  <div className="bg-white/5 p-2.5 rounded border border-white/5">
+                    <strong className="text-[#C5A253] block text-sm font-black">PASARA #293</strong>
+                    Maharashtra Police Reg.
+                  </div>
+                  <div className="bg-white/5 p-2.5 rounded border border-white/5">
+                    <strong className="text-[#C5A253] block text-sm font-black">2 Centres</strong>
+                    Karjat & Gorakhpur Training
+                  </div>
+                  <div className="bg-white/5 p-2.5 rounded border border-white/5">
+                    <strong className="text-[#C5A253] block text-sm font-black">Full Audit</strong>
+                    PF, ESIC, GST & PT Compliant
+                  </div>
+                </div>
+                <div className="pt-2 text-center">
+                  <Link href="/brochure" className="text-xs text-[#C5A253] font-bold hover:underline">
+                    Click to read full 13-page profile online →
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Trust intro */}
       {visible("trust_intro") && trust && (
