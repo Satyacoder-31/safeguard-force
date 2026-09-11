@@ -232,13 +232,23 @@ export default async function HomePage() {
               <div className="absolute top-3 sm:top-4 left-3 sm:left-4 bg-transparent">
                 <img src={settings.logo_url || "/images/safelogo.png"} alt="Badge" className="w-10 h-10 sm:w-14 sm:h-14 object-contain" />
               </div>
-              <div className="absolute bottom-0 left-0 right-0 bg-[#0A1931] p-4 sm:p-6 flex items-center justify-between gap-2">
+              <a
+                href={settings.google_maps_url || "https://maps.google.com/?q=C+517+Kailash+Esplanade+Ghatkopar+West+Mumbai"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute bottom-0 left-0 right-0 bg-[#0A1931] hover:bg-[#0E2242] transition p-4 sm:p-6 flex items-center justify-between gap-2 group cursor-pointer"
+                title="Open Google Maps Directions"
+              >
                 <div className="min-w-0">
                   <div className="text-[#C5A253] text-[10px] sm:text-xs tracking-widest uppercase font-bold">Trained &amp; Verified Personnel</div>
-                  <div className="text-white text-xs sm:text-sm mt-1 leading-tight">{settings.address_line_1} • {settings.city}</div>
+                  <div className="text-white text-xs sm:text-sm mt-1 leading-tight group-hover:underline flex items-center gap-1.5">
+                    <span>📍</span> {settings.address_line_1} • {settings.city}
+                  </div>
                 </div>
-                <div className="w-8 h-8 sm:w-10 sm:h-10 border border-white/20 flex items-center justify-center text-white shrink-0">→</div>
-              </div>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 border border-white/20 group-hover:border-[#C5A253] group-hover:bg-[#C5A253] group-hover:text-[#0A1931] flex items-center justify-center text-white shrink-0 transition shadow-sm font-bold">
+                  ↗
+                </div>
+              </a>
             </div>
           </div>
         </div>
