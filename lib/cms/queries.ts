@@ -1099,7 +1099,7 @@ export async function getContactSettings(): Promise<ContactSettings | null> {
           admin()
             .from("contact_settings")
             .select("*")
-            .order("created_at", { ascending: true })
+            .order("updated_at", { ascending: false })
             .limit(1),
           admin()
             .from("homepage_sections")

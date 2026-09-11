@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { useRouter } from "next/navigation";
 import { saveContactSettings } from "@/lib/actions/admin";
 import { SubmitButton, showToast } from "../../components/ui";
 import MediaPicker from "../../components/MediaPicker";
@@ -10,9 +11,13 @@ const input = "w-full border border-slate-200 px-3 py-2.5 text-sm focus:outline-
 const label = "block text-[11px] tracking-[0.14em] uppercase font-bold text-slate-500 mb-1.5";
 
 export default function ContactForm({ contact }: { contact: ContactSettings | null }) {
+  const router = useRouter();
   const [state, action] = useActionState(async (_prev: unknown, fd: FormData) => {
     const res = await saveContactSettings(_prev, fd);
     showToast(res.ok ? "Contact page saved — website updates automatically" : res.error || "Save failed", res.ok);
+    if (res.ok) {
+      router.refresh();
+    }
     return res;
   }, null);
 
