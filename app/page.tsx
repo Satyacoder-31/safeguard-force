@@ -4,6 +4,9 @@ import { getSiteSettings, getNavigation, getHeroSlides, getStatistics, getServic
 import { telHref } from "@/lib/utils";
 import type { SiteSettings, Statistic } from "@/types/database";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function generateMetadata() {
   const settings = await getSiteSettings();
   return {
