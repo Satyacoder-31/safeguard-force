@@ -4,6 +4,9 @@ import ContactForm from "../components/ContactForm";
 import { getContactSettings, getSiteSettings, getServices } from "@/lib/cms/queries";
 import { telHref, whatsappHref } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function generateMetadata(): Promise<Metadata> {
   const contact = await getContactSettings();
   return {

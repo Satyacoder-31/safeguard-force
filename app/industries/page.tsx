@@ -3,6 +3,9 @@ import PageHero from "../components/PageHero";
 import Link from "next/link";
 import { getIndustries, getContactSettings, getHomepageSections } from "@/lib/cms/queries";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: "Industries We Serve — SAFE Guard FORCE",
   description:

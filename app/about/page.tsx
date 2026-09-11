@@ -4,6 +4,9 @@ import Link from "next/link";
 import { getAboutContent, getValues, getSiteSettings } from "@/lib/cms/queries";
 import { FALLBACK_ABOUT } from "@/lib/cms/queries";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function generateMetadata(): Promise<Metadata> {
   const about = (await getAboutContent()) ?? FALLBACK_ABOUT;
   return {
