@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import PageHero from "../components/PageHero";
-import Link from "next/link";
-import { getIndustries, getContactSettings, getHomepageSections } from "@/lib/cms/queries";
+import { getIndustries, getHomepageSections } from "@/lib/cms/queries";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -13,9 +12,8 @@ export const metadata: Metadata = {
 };
 
 export default async function IndustriesPage() {
-  const [industries, contact, sections] = await Promise.all([
+  const [industries, sections] = await Promise.all([
     getIndustries(),
-    getContactSettings(),
     getHomepageSections(),
   ]);
 
@@ -59,13 +57,6 @@ export default async function IndustriesPage() {
             </div>
           )}
 
-          <div className="mt-12 bg-[#0A1931] p-8 flex flex-col lg:flex-row items-center justify-between gap-6">
-            <div>
-              <div className="text-[#C5A253] text-xs tracking-[0.18em] uppercase font-bold">Not sure which package fits?</div>
-              <div className="text-white font-bold text-lg mt-1">Tell us your property type — we&apos;ll propose a tailored plan.</div>
-            </div>
-            <Link href="/contact" className="bg-[#C5A253] text-[#0A1931] px-7 py-3.5 text-xs tracking-[0.16em] uppercase font-bold shrink-0">{contact?.cta_text || "Request Consultation"}</Link>
-          </div>
         </div>
       </section>
     </>
