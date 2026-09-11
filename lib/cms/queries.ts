@@ -47,7 +47,7 @@ export async function revalidateAllCms() {
     const { revalidateTag } = await import("next/cache");
     Object.values(TAGS).forEach((tag) => {
       try {
-        (revalidateTag as (t: string, p?: string | { expire?: number }) => void)(tag, { expire: 0 });
+        (revalidateTag as unknown as (t: string) => void)(tag);
       } catch (err) {
         console.warn(`[cms] revalidateTag failed for ${tag}:`, err);
       }

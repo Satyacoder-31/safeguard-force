@@ -16,13 +16,18 @@ async function guard() {
 }
 
 async function publicRevalidate() {
-  // Refresh all cached public pages after any content mutation.
-  ["/", "/about", "/contact", "/industries"].forEach((p) => revalidatePath(p));
-  revalidatePath("/services/[slug]", "page");
+  // Refresh all cached public pages and layouts after any content mutation.
+  ["/", "/about", "/contact", "/industries", "/brochure"].forEach((p) => {
+    try { revalidatePath(p, "page"); } catch (e) {}
+    try { revalidatePath(p, "layout"); } catch (e) {}
+  });
+  try { revalidatePath("/services/[slug]", "page"); } catch (e) {}
   ["security-services", "facility-management", "housekeeping", "fire-safety", "technical-maintenance", "detective-services"].forEach(
-    (p) => revalidatePath(`/${p}`),
+    (p) => {
+      try { revalidatePath(`/${p}`, "page"); } catch (e) {}
+    }
   );
-  revalidatePath("/admin", "layout");
+  try { revalidatePath("/admin", "layout"); } catch (e) {}
   try {
     const { revalidateAllCms } = await import("@/lib/cms/queries");
     await revalidateAllCms();
@@ -327,7 +332,7 @@ export async function upsertNavigationItem(formData: FormData): Promise<Result> 
     }
     if (error) throw error;
     await logActivity({ adminUserId: profile.id, action: id ? "Updated navigation item" : "Created navigation item", entityType: "navigation_item", entityId: id, metadata: values });
-    publicRevalidate();
+    await publicRevalidate();
     return { ok: true, id };
   } catch (err) {
     return fail(err, "Could not save navigation item.");
@@ -342,7 +347,7 @@ export async function deleteNavigationItem(input: IdLike): Promise<Result> {
     const { error } = await admin.from("navigation_items").delete().eq("id", id);
     if (error) throw error;
     await logActivity({ adminUserId: profile.id, action: "Deleted navigation item", entityType: "navigation_item", entityId: id });
-    publicRevalidate();
+    await publicRevalidate();
     return { ok: true };
   } catch (err) {
     return fail(err, "Could not delete navigation item.");
@@ -373,7 +378,7 @@ export async function updateHomepageSection(formData: FormData): Promise<Result>
     const { error } = await admin.from("homepage_sections").update(values).eq("id", id);
     if (error) throw error;
     await logActivity({ adminUserId: profile.id, action: "Updated homepage section", entityType: "homepage_section", entityId: id, metadata: { section: String(formData.get("section_key") || "") } });
-    publicRevalidate();
+    await publicRevalidate();
     return { ok: true, id };
   } catch (err) {
     return fail(err, "Could not save homepage section.");
@@ -389,7 +394,7 @@ export async function toggleHomepageSection(formData: FormData): Promise<Result>
     const { error } = await admin.from("homepage_sections").update({ is_visible: visible }).eq("id", id);
     if (error) throw error;
     await logActivity({ adminUserId: profile.id, action: visible ? "Showed homepage section" : "Hid homepage section", entityType: "homepage_section", entityId: id });
-    publicRevalidate();
+    await publicRevalidate();
     return { ok: true };
   } catch (err) {
     return fail(err, "Could not update section.");
@@ -429,7 +434,7 @@ export async function upsertHeroSlide(formData: FormData): Promise<Result> {
     }
     if (error) throw error;
     await logActivity({ adminUserId: profile.id, action: id ? "Updated hero slide" : "Created hero slide", entityType: "hero_slide", entityId: id, metadata: { title: values.title } });
-    publicRevalidate();
+    await publicRevalidate();
     return { ok: true, id };
   } catch (err) {
     return fail(err, "Could not save hero slide.");
@@ -444,7 +449,7 @@ export async function deleteHeroSlide(input: IdLike): Promise<Result> {
     const { error } = await admin.from("hero_slides").delete().eq("id", id);
     if (error) throw error;
     await logActivity({ adminUserId: profile.id, action: "Deleted hero slide", entityType: "hero_slide", entityId: id });
-    publicRevalidate();
+    await publicRevalidate();
     return { ok: true };
   } catch (err) {
     return fail(err, "Could not delete hero slide.");
@@ -513,7 +518,7 @@ export async function upsertService(formData: FormData): Promise<Result> {
     }
 
     await logActivity({ adminUserId: profile.id, action: id ? "Updated service" : "Created service", entityType: "service", entityId: savedId || id, metadata: { name } });
-    publicRevalidate();
+    await publicRevalidate();
     return { ok: true, id: savedId || id };
   } catch (err) {
     return fail(err, "Could not save service.");
@@ -532,7 +537,7 @@ export async function toggleServiceFeatured(serviceId: string, isFeatured: boole
       entityType: "service",
       entityId: serviceId,
     });
-    publicRevalidate();
+    await publicRevalidate();
     return { ok: true };
   } catch (err) {
     return fail(err, "Could not update service featured status.");
@@ -547,7 +552,7 @@ export async function deleteService(input: IdLike): Promise<Result> {
     const { error } = await admin.from("services").delete().eq("id", id);
     if (error) throw error;
     await logActivity({ adminUserId: profile.id, action: "Deleted service", entityType: "service", entityId: id });
-    publicRevalidate();
+    await publicRevalidate();
     return { ok: true };
   } catch (err) {
     return fail(err, "Could not delete service.");
@@ -580,7 +585,7 @@ export async function upsertServiceItem(formData: FormData): Promise<Result> {
     }
     if (error) throw error;
     await logActivity({ adminUserId: profile.id, action: id ? "Updated service item" : "Created service item", entityType: "service_item", entityId: id, metadata: { title: values.title } });
-    publicRevalidate();
+    await publicRevalidate();
     return { ok: true, id };
   } catch (err) {
     return fail(err, "Could not save service item.");
@@ -595,7 +600,7 @@ export async function deleteServiceItem(input: IdLike): Promise<Result> {
     const { error } = await admin.from("service_items").delete().eq("id", id);
     if (error) throw error;
     await logActivity({ adminUserId: profile.id, action: "Deleted service item", entityType: "service_item", entityId: id });
-    publicRevalidate();
+    await publicRevalidate();
     return { ok: true };
   } catch (err) {
     return fail(err, "Could not delete service item.");
@@ -634,7 +639,7 @@ export async function upsertIndustry(formData: FormData): Promise<Result> {
     }
     if (error) throw error;
     await logActivity({ adminUserId: profile.id, action: id ? "Updated industry" : "Created industry", entityType: "industry", entityId: id, metadata: { name } });
-    publicRevalidate();
+    await publicRevalidate();
     return { ok: true, id };
   } catch (err) {
     return fail(err, "Could not save industry.");
@@ -649,7 +654,7 @@ export async function deleteIndustry(input: IdLike): Promise<Result> {
     const { error } = await admin.from("industries").delete().eq("id", id);
     if (error) throw error;
     await logActivity({ adminUserId: profile.id, action: "Deleted industry", entityType: "industry", entityId: id });
-    publicRevalidate();
+    await publicRevalidate();
     return { ok: true };
   } catch (err) {
     return fail(err, "Could not delete industry.");
@@ -698,7 +703,7 @@ export async function saveAboutContent(_prev: unknown, formData: FormData): Prom
     }
     if (error) throw error;
     await logActivity({ adminUserId: profile.id, action: "Updated about content", entityType: "about_content" });
-    publicRevalidate();
+    await publicRevalidate();
     return { ok: true };
   } catch (err) {
     return fail(err, "Could not save about content.");
@@ -818,7 +823,7 @@ export async function upsertValue(formData: FormData): Promise<Result> {
     }
     if (error) throw error;
     await logActivity({ adminUserId: profile.id, action: id ? "Updated value" : "Created value", entityType: "value", entityId: id });
-    publicRevalidate();
+    await publicRevalidate();
     return { ok: true, id };
   } catch (err) {
     return fail(err, "Could not save value.");
@@ -833,7 +838,7 @@ export async function deleteValue(input: IdLike): Promise<Result> {
     const { error } = await admin.from("values").delete().eq("id", id);
     if (error) throw error;
     await logActivity({ adminUserId: profile.id, action: "Deleted value", entityType: "value", entityId: id });
-    publicRevalidate();
+    await publicRevalidate();
     return { ok: true };
   } catch (err) {
     return fail(err, "Could not delete value.");
@@ -870,7 +875,7 @@ export async function upsertTestimonial(formData: FormData): Promise<Result> {
     }
     if (error) throw error;
     await logActivity({ adminUserId: profile.id, action: id ? "Updated testimonial" : "Created testimonial", entityType: "testimonial", entityId: id });
-    publicRevalidate();
+    await publicRevalidate();
     return { ok: true, id };
   } catch (err) {
     return fail(err, "Could not save testimonial.");
@@ -885,7 +890,7 @@ export async function deleteTestimonial(input: IdLike): Promise<Result> {
     const { error } = await admin.from("testimonials").delete().eq("id", id);
     if (error) throw error;
     await logActivity({ adminUserId: profile.id, action: "Deleted testimonial", entityType: "testimonial", entityId: id });
-    publicRevalidate();
+    await publicRevalidate();
     return { ok: true };
   } catch (err) {
     return fail(err, "Could not delete testimonial.");
@@ -919,7 +924,7 @@ export async function upsertStatistic(formData: FormData): Promise<Result> {
     }
     if (error) throw error;
     await logActivity({ adminUserId: profile.id, action: id ? "Updated statistic" : "Created statistic", entityType: "statistic", entityId: id });
-    publicRevalidate();
+    await publicRevalidate();
     return { ok: true, id };
   } catch (err) {
     return fail(err, "Could not save statistic.");
@@ -934,7 +939,7 @@ export async function deleteStatistic(input: IdLike): Promise<Result> {
     const { error } = await admin.from("statistics").delete().eq("id", id);
     if (error) throw error;
     await logActivity({ adminUserId: profile.id, action: "Deleted statistic", entityType: "statistic", entityId: id });
-    publicRevalidate();
+    await publicRevalidate();
     return { ok: true };
   } catch (err) {
     return fail(err, "Could not delete statistic.");
