@@ -166,12 +166,22 @@ function HomepageCoreServicesEditor({ services }: { services: Service[] }) {
 
 function SectionForm({ section }: { section: HomepageSection }) {
   const router = useRouter();
+  const [itemsList, setItemsList] = useState<Array<{ title: string; desc: string }>>(() => {
+    const raw = section.items || [];
+    return raw.map((it: any) => ({
+      title: it.title || it.t || "",
+      desc: it.desc || it.d || it.description || "",
+    }));
+  });
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     fd.set("id", section.id);
     fd.set("section_key", section.section_key);
+    if (section.section_key === "why_choose_us") {
+      fd.set("items", JSON.stringify(itemsList));
+    }
     const res = await updateHomepageSection(fd);
     showToast(res.ok ? "Section saved — homepage updates automatically" : res.error || "Save failed", res.ok);
     if (res.ok) router.refresh();
@@ -179,6 +189,7 @@ function SectionForm({ section }: { section: HomepageSection }) {
 
   const isWhyOrProcess = section.section_key === "why_choose_us" || section.section_key === "process";
   const showTitle = !["stats_band"].includes(section.section_key);
+  const isWhyChooseUs = section.section_key === "why_choose_us";
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
@@ -216,6 +227,75 @@ function SectionForm({ section }: { section: HomepageSection }) {
           <input name="button_url" defaultValue={section.button_url} className={input} />
         </div>
       </div>
+
+      {isWhyChooseUs && (
+        <div className="border-t border-slate-200 pt-4 mt-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-black uppercase tracking-widest text-[#0A1931]">
+              Trust Feature Cards ({itemsList.length} Cards)
+            </h4>
+            <button
+              type="button"
+              onClick={() => setItemsList([...itemsList, { title: "", desc: "" }])}
+              className="text-[11px] font-bold uppercase tracking-wider text-[#C5A253] hover:text-[#B8941F]"
+            >
+              + Add Card
+            </button>
+          </div>
+          <p className="text-xs text-slate-500">
+            These feature cards are displayed in the &quot;Why Organizations Trust Us&quot; section grid on the homepage.
+          </p>
+
+          <input type="hidden" name="items" value={JSON.stringify(itemsList)} />
+
+          <div className="space-y-3">
+            {itemsList.map((item, idx) => (
+              <div key={idx} className="bg-slate-50 border border-slate-200 p-3.5 rounded-sm space-y-2 relative">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">Card #{idx + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => setItemsList(itemsList.filter((_, i) => i !== idx))}
+                    className="text-xs text-red-600 hover:underline font-bold"
+                  >
+                    Delete
+                  </button>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className={label}>Card Title</label>
+                    <input
+                      value={item.title}
+                      onChange={(e) => {
+                        const updated = [...itemsList];
+                        updated[idx].title = e.target.value;
+                        setItemsList(updated);
+                      }}
+                      className={input}
+                      placeholder="e.g. Trained & Verified Personnel"
+                    />
+                  </div>
+                  <div>
+                    <label className={label}>Description</label>
+                    <textarea
+                      value={item.desc}
+                      onChange={(e) => {
+                        const updated = [...itemsList];
+                        updated[idx].desc = e.target.value;
+                        setItemsList(updated);
+                      }}
+                      rows={2}
+                      className={input}
+                      placeholder="e.g. Screened, trained and supervised manpower..."
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between pt-2">
         <label className="flex items-center gap-2 text-sm text-slate-600">
           <input type="checkbox" name="is_visible" defaultChecked={section.is_visible} className="accent-[#C5A253] w-4 h-4" /> Visible on homepage

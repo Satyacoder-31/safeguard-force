@@ -308,20 +308,36 @@ export default async function HomePage() {
       <section className="py-10 sm:py-12 lg:py-20 bg-[#0A1931] relative overflow-hidden">
         <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "url(/images/mumbai-business-district.png)", backgroundSize: "cover" }} />
         <div className="relative max-w-[1280px] mx-auto px-4 sm:px-6">
-          <div className="max-w-[640px] mb-6 sm:mb-10">
+          <div className="max-w-[720px] mb-6 sm:mb-10">
             <div className="text-[#C5A253] text-[10px] sm:text-[11px] tracking-[0.18em] sm:tracking-[0.20em] uppercase font-bold mb-2 sm:mb-3">
-              {whySec.eyebrow?.toLowerCase().includes("trust") ? "WHY CHOOSE US" : whySec.eyebrow}
+              {whySec.eyebrow || "WHY CHOOSE US"}
             </div>
-            <h2 className="text-white font-black text-[24px] sm:text-[30px] lg:text-[42px] leading-none tracking-tight whitespace-pre-line">Why Organizations Trust <span className="text-[#C5A253] font-black italic">SAFE Guard FORCE</span></h2>
+            <h2 className="text-white font-black text-[24px] sm:text-[30px] lg:text-[42px] leading-none tracking-tight whitespace-pre-line">
+              {whySec.title || "Why Organizations Trust SAFE Guard FORCE"}
+            </h2>
+            {whySec.subtitle && (
+              <p className="text-white/80 text-[14px] sm:text-[16px] leading-relaxed mt-3 sm:mt-4">
+                {whySec.subtitle}
+              </p>
+            )}
+            {whySec.description && (
+              <p className="text-white/60 text-[13px] sm:text-sm leading-relaxed mt-2">
+                {whySec.description}
+              </p>
+            )}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-            {whySec.items.map((f, i) => (
-              <div key={f.title ?? i} className="bg-white/[0.06] backdrop-blur border border-white/10 p-7 hover:bg-white/[0.09] hover:border-[#C5A253]/30 transition">
-                <div className="w-10 h-10 bg-[#C5A253] flex items-center justify-center text-[#0A1931] font-black text-sm mb-5">{String(i + 1).padStart(2, "0")}</div>
-                <h3 className="text-white font-bold text-sm tracking-wide">{f.title}</h3>
-                <p className="text-white/60 text-sm leading-relaxed mt-2">{f.desc}</p>
-              </div>
-            ))}
+            {(whySec.items || []).map((f: any, i: number) => {
+              const itemTitle = f.title || f.t || "";
+              const itemDesc = f.desc || f.d || f.description || "";
+              return (
+                <div key={itemTitle || i} className="bg-white/[0.06] backdrop-blur border border-white/10 p-7 hover:bg-white/[0.09] hover:border-[#C5A253]/30 transition">
+                  <div className="w-10 h-10 bg-[#C5A253] flex items-center justify-center text-[#0A1931] font-black text-sm mb-5">{String(i + 1).padStart(2, "0")}</div>
+                  <h3 className="text-white font-bold text-sm tracking-wide">{itemTitle}</h3>
+                  <p className="text-white/60 text-sm leading-relaxed mt-2">{itemDesc}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

@@ -363,7 +363,7 @@ export async function updateHomepageSection(formData: FormData): Promise<Result>
     const profile = await guard();
     const admin = createAdminClient();
     const id = String(formData.get("id") || "");
-    const values = {
+    const values: Record<string, any> = {
       eyebrow: String(formData.get("eyebrow") || ""),
       title: String(formData.get("title") || ""),
       subtitle: String(formData.get("subtitle") || ""),
@@ -375,7 +375,14 @@ export async function updateHomepageSection(formData: FormData): Promise<Result>
       sort_order: Number(formData.get("sort_order") || 0),
     };
 
-    const { error } = await admin.from("homepage_sections").update(values).eq("id", id);
+    if (formData.has("items")) {
+      try {
+        const rawItems = String(formData.get("items") || "[]");
+        values.items = JSON.parse(rawItems);
+      } catch (e) {}
+    }
+
+    const { error } = await admin.from("homepage_sections").update(values as any).eq("id", id);
     if (error) throw error;
     await logActivity({ adminUserId: profile.id, action: "Updated homepage section", entityType: "homepage_section", entityId: id, metadata: { section: String(formData.get("section_key") || "") } });
     await publicRevalidate();
