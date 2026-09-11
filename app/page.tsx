@@ -395,18 +395,18 @@ export default async function HomePage() {
             <div className="absolute -bottom-4 -right-4 hidden lg:flex bg-[#0A1931] border-2 border-white shadow-xl p-5 items-center gap-4">
               <img src={settings.logo_url || "/images/safelogo.png"} alt="Logo" className="w-16 h-16 object-contain" />
               <div>
-                <div className="text-[#C5A253] text-xs tracking-[0.18em] uppercase font-bold">{settings.site_name || "SAFE GUARD FORCE"}</div>
-                <div className="text-white font-black text-sm tracking-wide">{settings.tagline || "YOUR SECURITY. OUR PRIORITY."}</div>
+                <div className="text-[#C5A253] text-base lg:text-lg tracking-[0.20em] uppercase font-extrabold">{settings.site_name || "SAFE GUARD FORCE"}</div>
+                <div className="text-white font-black text-sm tracking-wide mt-0.5">{settings.tagline || "YOUR SECURITY. OUR PRIORITY."}</div>
                 <div className="text-white/60 text-xs mt-1">Disciplined • Verified • Presentable</div>
               </div>
             </div>
             {/* Mobile badge */}
-            <div className="flex lg:hidden bg-[#0A1931] p-3 items-center gap-3 mt-0 border-t-0 border border-slate-200 border-t-0">
-              <img src={settings.logo_url || "/images/safelogo.png"} alt="Logo" className="w-10 h-10 object-contain shrink-0" />
+            <div className="flex lg:hidden bg-[#0A1931] p-3.5 items-center gap-3 mt-0 border border-slate-200 border-t-0">
+              <img src={settings.logo_url || "/images/safelogo.png"} alt="Logo" className="w-11 h-11 object-contain shrink-0" />
               <div>
-                <div className="text-[#C5A253] text-[10px] tracking-[0.16em] uppercase font-bold">{settings.site_name || "SAFE GUARD FORCE"}</div>
-                <div className="text-white font-bold text-xs">{settings.tagline || "YOUR SECURITY. OUR PRIORITY."}</div>
-                <div className="text-white/70 text-xs mt-0.5">Disciplined • Verified • Presentable</div>
+                <div className="text-[#C5A253] text-xs sm:text-sm tracking-[0.18em] uppercase font-extrabold">{settings.site_name || "SAFE GUARD FORCE"}</div>
+                <div className="text-white font-bold text-xs mt-0.5">{settings.tagline || "YOUR SECURITY. OUR PRIORITY."}</div>
+                <div className="text-white/70 text-[11px] mt-0.5">Disciplined • Verified • Presentable</div>
               </div>
             </div>
           </div>
