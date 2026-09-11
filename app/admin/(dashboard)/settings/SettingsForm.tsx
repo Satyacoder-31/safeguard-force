@@ -46,7 +46,7 @@ export default function SettingsForm({ settings }: { settings: SiteSettings }) {
           <TextField name="primary_phone" title="Primary Phone" def={settings.primary_phone} />
           <TextField name="secondary_phone" title="Secondary Phone" def={settings.secondary_phone} />
           <TextField name="email" title="Email" type="email" def={settings.email} />
-          <TextField name="whatsapp_number" title="WhatsApp Number (with country code)" def={settings.whatsapp_number} placeholder="919323581437" />
+          <TextField name="whatsapp_number" title="WhatsApp Number (with country code)" def={settings.whatsapp_number} placeholder="917977179807" />
         </div>
         <div>
           <label htmlFor="ss-wa-msg" className={label}>WhatsApp Prefilled Message</label>

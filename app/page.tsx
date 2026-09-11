@@ -108,78 +108,86 @@ export default async function HomePage() {
       </section>
 
       {/* Corporate Brochure Showcase Section */}
-      {settings.brochure_enabled !== false && (
-        <section className="py-12 lg:py-16 bg-[#070F1F] text-white border-b border-white/10 relative overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#C5A253]/15 via-transparent to-transparent pointer-events-none" />
-          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 grid lg:grid-cols-12 gap-8 items-center relative z-10">
-            <div className="lg:col-span-7 space-y-4">
-              <div className="inline-flex items-center gap-2 text-[#C5A253] text-[10.5px] sm:text-[11px] tracking-[0.2em] uppercase font-bold">
-                <span className="w-8 h-px bg-[#C5A253]" /> Official Company Document
-              </div>
-              <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight">
-                {settings.brochure_title || "SAFE Guard FORCE Corporate Brochure"}
-              </h2>
-              <p className="text-white/75 text-xs sm:text-sm leading-relaxed max-w-[620px]">
-                Explore our official 13-page corporate profile covering our 20+ years track record, leadership foreword by Founder & Director Mr. Shashikant Shukla, 30-day training methodologies in Karjat & Gorakhpur, statutory compliance (PASARA License No. 293), and valued client portfolio.
-              </p>
-              <div className="flex flex-wrap items-center gap-3 pt-3">
-                <Link
-                  href="/brochure"
-                  className="bg-[#C5A253] hover:bg-[#D4AF37] text-[#070F1F] px-7 py-3.5 text-xs tracking-[0.16em] uppercase font-black transition shadow-lg inline-flex items-center gap-2"
-                >
-                  <span>📄</span> View Corporate Profile (13 Pages) →
-                </Link>
-                {settings.brochure_url && (
-                  <a
-                    href={settings.brochure_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    download
-                    className="border border-white/30 hover:bg-white hover:text-[#070F1F] text-white px-7 py-3.5 text-xs tracking-[0.16em] uppercase font-bold transition inline-flex items-center gap-2"
-                  >
-                    <span>📥</span> Download PDF
-                  </a>
-                )}
-              </div>
-            </div>
+      {(() => {
+        const brochureSec = section("brochure");
+        const isVisible = brochureSec ? brochureSec.is_visible : (settings.brochure_enabled !== false);
+        if (!isVisible) return null;
 
-            <div className="lg:col-span-5">
-              <div className="bg-white/5 border border-white/15 p-6 rounded-sm space-y-4 backdrop-blur-md shadow-2xl">
-                <div className="flex items-center gap-3 border-b border-white/10 pb-4">
-                  <img src={settings.logo_url || "/images/safelogo.png"} alt="Logo" className="w-12 h-12 object-contain" />
-                  <div>
-                    <div className="text-xs font-black text-white tracking-wider">SAFE GUARD FORCE</div>
-                    <div className="text-[#C5A253] text-[10px] uppercase font-bold">13-Page Corporate Profile</div>
-                  </div>
+        const effectiveTitle = brochureSec?.title || settings.brochure_title || "SAFE Guard FORCE Corporate Brochure";
+        const effectiveEyebrow = brochureSec?.eyebrow || "Official Company Document";
+        const effectiveDesc = brochureSec?.subtitle || brochureSec?.description || "Explore our official 13-page corporate profile covering our 20+ years track record, leadership foreword by Founder & Director Mr. Shashikant Shukla, 30-day training methodologies in Karjat & Gorakhpur, statutory compliance (PASARA License No. 293), and valued client portfolio.";
+        const effectiveBtnText = brochureSec?.button_text || "View Corporate Profile (13 Pages) →";
+        const effectivePdf = brochureSec?.button_url || settings.brochure_url || "/brochure.pdf";
+        const highlightItems = (brochureSec?.items && brochureSec.items.length > 0 ? brochureSec.items : [
+          { a: "20+ Years", b: "Industry Experience" },
+          { a: "PASARA #293", b: "Maharashtra Police Reg." },
+          { a: "2 Centres", b: "Karjat & Gorakhpur Training" },
+          { a: "Full Audit", b: "PF, ESIC, GST & PT Compliant" },
+        ]) as Array<{ a?: string; b?: string; title?: string; subtitle?: string; n?: string; d?: string }>;
+
+        return (
+          <section className="py-12 lg:py-16 bg-[#070F1F] text-white border-b border-white/10 relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#C5A253]/15 via-transparent to-transparent pointer-events-none" />
+            <div className="max-w-[1280px] mx-auto px-4 sm:px-6 grid lg:grid-cols-12 gap-8 items-center relative z-10">
+              <div className="lg:col-span-7 space-y-4">
+                <div className="inline-flex items-center gap-2 text-[#C5A253] text-[10.5px] sm:text-[11px] tracking-[0.2em] uppercase font-bold">
+                  <span className="w-8 h-px bg-[#C5A253]" /> {effectiveEyebrow}
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-xs text-white/80">
-                  <div className="bg-white/5 p-2.5 rounded border border-white/5">
-                    <strong className="text-[#C5A253] block text-sm font-black">20+ Years</strong>
-                    Industry Experience
-                  </div>
-                  <div className="bg-white/5 p-2.5 rounded border border-white/5">
-                    <strong className="text-[#C5A253] block text-sm font-black">PASARA #293</strong>
-                    Maharashtra Police Reg.
-                  </div>
-                  <div className="bg-white/5 p-2.5 rounded border border-white/5">
-                    <strong className="text-[#C5A253] block text-sm font-black">2 Centres</strong>
-                    Karjat & Gorakhpur Training
-                  </div>
-                  <div className="bg-white/5 p-2.5 rounded border border-white/5">
-                    <strong className="text-[#C5A253] block text-sm font-black">Full Audit</strong>
-                    PF, ESIC, GST & PT Compliant
-                  </div>
-                </div>
-                <div className="pt-2 text-center">
-                  <Link href="/brochure" className="text-xs text-[#C5A253] font-bold hover:underline">
-                    Click to read full 13-page profile online →
+                <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight">
+                  {effectiveTitle}
+                </h2>
+                <p className="text-white/75 text-xs sm:text-sm leading-relaxed max-w-[620px]">
+                  {effectiveDesc}
+                </p>
+                <div className="flex flex-wrap items-center gap-3 pt-3">
+                  <Link
+                    href="/brochure"
+                    className="bg-[#C5A253] hover:bg-[#D4AF37] text-[#070F1F] px-7 py-3.5 text-xs tracking-[0.16em] uppercase font-black transition shadow-lg inline-flex items-center gap-2"
+                  >
+                    <span>📄</span> {effectiveBtnText}
                   </Link>
+                  {effectivePdf && (
+                    <a
+                      href={effectivePdf}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      download="SAFE_GUARD_FORCE_Corporate_Brochure.pdf"
+                      className="border border-white/30 hover:bg-white hover:text-[#070F1F] text-white px-7 py-3.5 text-xs tracking-[0.16em] uppercase font-bold transition inline-flex items-center gap-2"
+                    >
+                      <span>📥</span> Download PDF
+                    </a>
+                  )}
+                </div>
+              </div>
+
+              <div className="lg:col-span-5">
+                <div className="bg-white/5 border border-white/15 p-6 rounded-sm space-y-4 backdrop-blur-md shadow-2xl">
+                  <div className="flex items-center gap-3 border-b border-white/10 pb-4">
+                    <img src={settings.logo_url || "/images/safelogo.png"} alt="Logo" className="w-12 h-12 object-contain" />
+                    <div>
+                      <div className="text-xs font-black text-white tracking-wider">SAFE GUARD FORCE</div>
+                      <div className="text-[#C5A253] text-[10px] uppercase font-bold">13-Page Corporate Profile</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-white/80">
+                    {highlightItems.map((item, idx) => (
+                      <div key={idx} className="bg-white/5 p-2.5 rounded border border-white/5">
+                        <strong className="text-[#C5A253] block text-sm font-black">{item.a || item.title || item.n}</strong>
+                        {item.b || item.subtitle || item.d}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="pt-2 text-center">
+                    <Link href="/brochure" className="text-xs text-[#C5A253] font-bold hover:underline">
+                      Click to read full 13-page profile online →
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
-      )}
+          </section>
+        );
+      })()}
 
       {/* Trust intro */}
       {visible("trust_intro") && trust && (
@@ -201,7 +209,7 @@ export default async function HomePage() {
             <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-6 sm:mt-8">
               {(trustStats.length > 0
                 ? trustStats.map((s) => [s.value, s.label])
-                : [["24/7", "Support"], ["Pan-Mumbai", "Presence"], ["One-Roof", "Solutions"]]
+                : [["24/7", "Support"], ["Pan-India", "Presence"], ["One-Roof", "Solutions"]]
               ).map(([a, b]) => (
                 <div key={a} className="border border-slate-200 px-2 sm:px-4 py-3 sm:py-4 text-center">
                   <div className="text-[#0A1931] font-black text-xs sm:text-sm">{a}</div>
@@ -228,14 +236,6 @@ export default async function HomePage() {
                 </div>
                 <div className="w-8 h-8 sm:w-10 sm:h-10 border border-white/20 flex items-center justify-center text-white shrink-0">→</div>
               </div>
-            </div>
-            <div className="hidden lg:block absolute -bottom-6 -left-6 bg-white shadow-xl border border-slate-100 p-6 w-[260px]">
-              <div className="text-[#0A1931] font-bold text-sm leading-tight">What We Commit To</div>
-              <ul className="mt-3 space-y-2 text-xs text-slate-600">
-                {["Professional Conduct", "Verified Personnel", "Regular Supervision", "Confidentiality"].map((t) => (
-                  <li key={t} className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-[#C5A253]" />{t}</li>
-                ))}
-              </ul>
             </div>
           </div>
         </div>
@@ -296,7 +296,9 @@ export default async function HomePage() {
         <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "url(/images/mumbai-business-district.png)", backgroundSize: "cover" }} />
         <div className="relative max-w-[1280px] mx-auto px-4 sm:px-6">
           <div className="max-w-[640px] mb-6 sm:mb-10">
-            <div className="text-[#C5A253] text-[10px] sm:text-[11px] tracking-[0.18em] sm:tracking-[0.20em] uppercase font-bold mb-2 sm:mb-3">{whySec.eyebrow}</div>
+            <div className="text-[#C5A253] text-[10px] sm:text-[11px] tracking-[0.18em] sm:tracking-[0.20em] uppercase font-bold mb-2 sm:mb-3">
+              {whySec.eyebrow?.toLowerCase().includes("trust") ? "WHY CHOOSE US" : whySec.eyebrow}
+            </div>
             <h2 className="text-white font-black text-[24px] sm:text-[30px] lg:text-[42px] leading-none tracking-tight whitespace-pre-line">Why Organizations Trust <span className="text-[#C5A253] font-black italic">SAFE Guard FORCE</span></h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
@@ -380,8 +382,8 @@ export default async function HomePage() {
             <div className="absolute -bottom-4 -right-4 hidden lg:flex bg-[#0A1931] border-2 border-white shadow-xl p-5 items-center gap-4">
               <img src={settings.logo_url || "/images/safelogo.png"} alt="Logo" className="w-16 h-16 object-contain" />
               <div>
-                <div className="text-[#C5A253] text-xs tracking-[0.18em] uppercase font-bold">{settings.tagline}</div>
-                <div className="text-white font-black text-sm tracking-wide">OUR PRIORITY.</div>
+                <div className="text-[#C5A253] text-xs tracking-[0.18em] uppercase font-bold">{settings.site_name || "SAFE GUARD FORCE"}</div>
+                <div className="text-white font-black text-sm tracking-wide">{settings.tagline || "YOUR SECURITY. OUR PRIORITY."}</div>
                 <div className="text-white/60 text-xs mt-1">Disciplined • Verified • Presentable</div>
               </div>
             </div>
@@ -389,8 +391,9 @@ export default async function HomePage() {
             <div className="flex lg:hidden bg-[#0A1931] p-3 items-center gap-3 mt-0 border-t-0 border border-slate-200 border-t-0">
               <img src={settings.logo_url || "/images/safelogo.png"} alt="Logo" className="w-10 h-10 object-contain shrink-0" />
               <div>
-                <div className="text-[#C5A253] text-[10px] tracking-[0.16em] uppercase font-bold">{settings.tagline}</div>
-                <div className="text-white/70 text-xs">Disciplined • Verified • Presentable</div>
+                <div className="text-[#C5A253] text-[10px] tracking-[0.16em] uppercase font-bold">{settings.site_name || "SAFE GUARD FORCE"}</div>
+                <div className="text-white font-bold text-xs">{settings.tagline || "YOUR SECURITY. OUR PRIORITY."}</div>
+                <div className="text-white/70 text-xs mt-0.5">Disciplined • Verified • Presentable</div>
               </div>
             </div>
           </div>

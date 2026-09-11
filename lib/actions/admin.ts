@@ -62,25 +62,28 @@ export async function uploadMediaFile(formData: FormData): Promise<Result> {
 
     const ALLOWED = [
       "image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml", "image/avif",
-      "application/pdf"
+      "application/pdf", "application/x-pdf"
     ];
-    if (!ALLOWED.includes(file.type)) {
+    const isPdf = file.type === "application/pdf" || file.type === "application/x-pdf" || file.name.toLowerCase().endsWith(".pdf");
+    
+    if (!ALLOWED.includes(file.type) && !isPdf && !file.type.startsWith("image/")) {
       return { ok: false, error: "Unsupported file type. Use JPG, PNG, WebP, GIF, SVG, AVIF or PDF." };
     }
-    if (file.size > 20 * 1024 * 1024) {
-      return { ok: false, error: "File exceeds 20 MB limit." };
+    if (file.size > 50 * 1024 * 1024) {
+      return { ok: false, error: "File exceeds 50 MB limit." };
     }
 
     const admin = createAdminClient();
-    const ext = file.name.split(".").pop() || (file.type.includes("pdf") ? "pdf" : "jpg");
+    const ext = isPdf ? "pdf" : (file.name.split(".").pop() || "jpg");
     const base = file.name.replace(/\.[^.]+$/, "").replace(/[^a-zA-Z0-9-_]/g, "-").toLowerCase();
     const path = `${folder}/${Date.now()}-${base}.${ext}`;
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
+    const contentType = isPdf ? "application/pdf" : (file.type || "image/jpeg");
 
     const { error: upErr } = await admin.storage.from("website-media").upload(path, buffer, {
-      contentType: file.type,
+      contentType,
       upsert: true,
     });
     if (upErr) throw upErr;
@@ -92,7 +95,7 @@ export async function uploadMediaFile(formData: FormData): Promise<Result> {
       file_name: file.name,
       storage_path: path,
       public_url: publicUrl,
-      mime_type: file.type,
+      mime_type: contentType,
       file_size: file.size,
       folder,
       alt_text: alt || base.replace(/-/g, " "),
@@ -101,7 +104,7 @@ export async function uploadMediaFile(formData: FormData): Promise<Result> {
 
     await logActivity({
       adminUserId: profile.id,
-      action: `Uploaded ${file.type.includes("pdf") ? "document" : "media"}: ${file.name}`,
+      action: `Uploaded ${isPdf ? "document" : "media"}: ${file.name}`,
       entityType: "media",
     });
 
@@ -114,6 +117,16 @@ export async function uploadMediaFile(formData: FormData): Promise<Result> {
 /* ========================================================================== */
 /* Site settings & Brochure                                                   */
 /* ========================================================================== */
+
+const VALID_SITE_SETTINGS_COLUMNS = new Set([
+  "site_name", "brand_name", "tagline", "logo_url", "favicon_url",
+  "primary_phone", "secondary_phone", "email", "whatsapp_number", "whatsapp_message",
+  "address_line_1", "address_line_2", "city", "state", "pincode", "country",
+  "google_maps_url", "support_text", "top_bar_text", "footer_description",
+  "copyright_text", "facebook_url", "instagram_url", "linkedin_url",
+  "youtube_url", "twitter_url", "primary_color", "secondary_color",
+  "dark_color", "light_color"
+]);
 
 export async function saveSiteSettings(_prev: unknown, formData: FormData): Promise<Result> {
   try {
@@ -130,17 +143,11 @@ export async function saveSiteSettings(_prev: unknown, formData: FormData): Prom
       if (anyRow?.[0]) existingId = anyRow[0].id;
     }
 
-    const values = Object.fromEntries(formData.entries());
     const patch: Record<string, string | boolean> = {};
-    for (const [k, v] of Object.entries(values)) {
-      if (k === "$ACTION_ID" || typeof v !== "string") continue;
-      patch[k] = v;
-    }
-    delete (patch as Record<string, unknown>).id;
-    delete (patch as Record<string, unknown>).updated_at;
-
-    if (formData.has("brochure_enabled")) {
-      patch.brochure_enabled = formData.get("brochure_enabled") === "on" || formData.get("brochure_enabled") === "true";
+    for (const [k, v] of formData.entries()) {
+      if (VALID_SITE_SETTINGS_COLUMNS.has(k) && typeof v === "string") {
+        patch[k] = v;
+      }
     }
 
     let error;
@@ -150,6 +157,26 @@ export async function saveSiteSettings(_prev: unknown, formData: FormData): Prom
       ({ error } = await admin.from("site_settings").insert(patch as unknown as Partial<SiteSettings>));
     }
     if (error) throw error;
+
+    // Save brochure fields if present in form
+    const brochureUrl = String(formData.get("brochure_url") || "").trim();
+    const brochureTitle = String(formData.get("brochure_title") || "").trim();
+    if (brochureUrl || brochureTitle || formData.has("brochure_enabled")) {
+      const brochureEnabled = formData.has("brochure_enabled")
+        ? (formData.get("brochure_enabled") === "on" || formData.get("brochure_enabled") === "true")
+        : true;
+
+      await admin.from("homepage_sections").upsert({
+        section_key: "brochure",
+        title: brochureTitle || "SAFE Guard FORCE Corporate Brochure",
+        button_text: brochureTitle || "SAFE Guard FORCE Corporate Brochure",
+        button_url: brochureUrl || "/brochure.pdf",
+        image_url: brochureUrl || "/brochure.pdf",
+        is_visible: brochureEnabled,
+        sort_order: 99,
+      }, { onConflict: "section_key" });
+    }
+
     await logActivity({ adminUserId: profile.id, action: "Updated site settings", entityType: "site_settings" });
     await publicRevalidate();
     return { ok: true };
@@ -164,30 +191,111 @@ export async function saveBrochureSettings(formData: FormData): Promise<Result> 
     const admin = createAdminClient();
     const brochureUrl = String(formData.get("brochure_url") || "").trim();
     const brochureTitle = String(formData.get("brochure_title") || "SAFE Guard FORCE Corporate Brochure").trim();
-    const brochureEnabled = formData.get("brochure_enabled") === "on" || formData.get("brochure_enabled") === "true";
+    const eyebrow = String(formData.get("eyebrow") || "Official Company Document").trim();
+    const description = String(formData.get("description") || "").trim();
+    const buttonText = String(formData.get("button_text") || "View Corporate Profile (13 Pages) →").trim();
+    const brochureEnabled = formData.has("brochure_enabled")
+      ? (formData.get("brochure_enabled") === "on" || formData.get("brochure_enabled") === "true")
+      : true;
 
+    // Build 4 key highlights cards array
+    const items = [
+      { a: String(formData.get("card_1_a") || "20+ Years").trim(), b: String(formData.get("card_1_b") || "Industry Experience").trim() },
+      { a: String(formData.get("card_2_a") || "PASARA #293").trim(), b: String(formData.get("card_2_b") || "Maharashtra Police Reg.").trim() },
+      { a: String(formData.get("card_3_a") || "2 Centres").trim(), b: String(formData.get("card_3_b") || "Karjat & Gorakhpur Training").trim() },
+      { a: String(formData.get("card_4_a") || "Full Audit").trim(), b: String(formData.get("card_4_b") || "PF, ESIC, GST & PT Compliant").trim() },
+    ];
+
+    // 1. Update homepage_sections
+    const { error: secError } = await admin.from("homepage_sections").upsert({
+      section_key: "brochure",
+      eyebrow: eyebrow,
+      title: brochureTitle,
+      subtitle: description,
+      description: description,
+      button_text: buttonText,
+      button_url: brochureUrl || "/brochure.pdf",
+      image_url: brochureUrl || "/brochure.pdf",
+      items: items,
+      is_visible: brochureEnabled,
+      sort_order: 99,
+    }, { onConflict: "section_key" });
+
+    if (secError) throw secError;
+
+    // 2. Update site_settings for complete sync
     const { data: safeRow } = await admin.from("site_settings").select("id").ilike("site_name", "%SAFE%").limit(1);
-    let error;
-    if (safeRow?.[0]) {
-      ({ error } = await admin.from("site_settings").update({
-        brochure_url: brochureUrl,
+    if (safeRow?.[0]?.id) {
+      await admin.from("site_settings").update({
+        brochure_url: brochureUrl || "/brochure.pdf",
         brochure_title: brochureTitle,
         brochure_enabled: brochureEnabled,
-      }).eq("id", safeRow[0].id));
-    } else {
-      ({ error } = await admin.from("site_settings").insert({
-        site_name: "SAFE Guard FORCE",
-        brochure_url: brochureUrl,
-        brochure_title: brochureTitle,
-        brochure_enabled: brochureEnabled,
-      }));
+      }).eq("id", safeRow[0].id);
     }
-    if (error) throw error;
-    await logActivity({ adminUserId: profile.id, action: "Updated company brochure", entityType: "site_settings" });
+
+    await logActivity({ adminUserId: profile.id, action: "Updated company brochure section", entityType: "site_settings" });
     await publicRevalidate();
     return { ok: true };
   } catch (err) {
     return fail(err, "Could not save brochure settings.");
+  }
+}
+
+export async function saveBrochurePageSettings(formData: FormData): Promise<Result> {
+  try {
+    const profile = await guard();
+    const admin = createAdminClient();
+
+    const eyebrow = String(formData.get("eyebrow") || "Official Corporate Profile").trim();
+    const title = String(formData.get("title") || "SAFE GUARD FORCE Corporate Brochure").trim();
+    const subtitle = String(formData.get("subtitle") || "").trim();
+    const heroImage = String(formData.get("hero_image") || "/images/hero-mumbai-security.png").trim();
+    const actionBarText = String(formData.get("action_bar_text") || "Official Corporate Profile • PASARA License No. 293 • Govt. of Maharashtra").trim();
+    const downloadBtnText = String(formData.get("download_button_text") || "Download PDF Brochure").trim();
+    const openBtnText = String(formData.get("open_button_text") || "Open PDF in New Tab").trim();
+    const footerCardTitle = String(formData.get("footer_card_title") || "SAFE GUARD FORCE Corporate Profile").trim();
+    const footerCardSubtitle = String(formData.get("footer_card_subtitle") || "").trim();
+    const pdfUrl = String(formData.get("pdf_url") || "/brochure.pdf").trim();
+
+    const items = [
+      {
+        action_bar_text: actionBarText,
+        open_button_text: openBtnText,
+        footer_card_title: footerCardTitle,
+        footer_card_subtitle: footerCardSubtitle,
+      },
+    ];
+
+    const { error: secError } = await admin.from("homepage_sections").upsert({
+      section_key: "brochure_page",
+      eyebrow: eyebrow,
+      title: title,
+      subtitle: subtitle,
+      description: footerCardSubtitle,
+      button_text: downloadBtnText,
+      button_url: pdfUrl,
+      image_url: heroImage,
+      items: items,
+      is_visible: true,
+      sort_order: 100,
+    }, { onConflict: "section_key" });
+
+    if (secError) throw secError;
+
+    // Sync pdfUrl to site_settings as well
+    const { data: safeRow } = await admin.from("site_settings").select("id").ilike("site_name", "%SAFE%").limit(1);
+    if (safeRow?.[0]?.id) {
+      await admin.from("site_settings").update({
+        brochure_url: pdfUrl,
+        brochure_title: title,
+      }).eq("id", safeRow[0].id);
+    }
+
+    await logActivity({ adminUserId: profile.id, action: "Updated /brochure page settings", entityType: "site_settings" });
+    await publicRevalidate();
+    return { ok: true };
+  } catch (err) {
+    return fail(err, "Could not save brochure page settings.");
   }
 }
 

@@ -60,7 +60,7 @@ export default function ContactForm({ contact }: { contact: ContactSettings | nu
             <label className={label}>Phone Numbers (one per line)</label>
             <textarea
               name="phone_numbers"
-              defaultValue={(contact?.phone_numbers ?? ["9323581437", "9136645289"]).join("\n")}
+              defaultValue={(contact?.phone_numbers ?? ["7977179807", "9136645289"]).join("\n")}
               rows={3}
               className={input}
             />
@@ -71,7 +71,7 @@ export default function ContactForm({ contact }: { contact: ContactSettings | nu
               <input name="email" type="email" defaultValue={contact?.email} className={input} />
             </div>
             <div>
-              <label className={label}>WhatsApp Number (e.g. 919323581437)</label>
+              <label className={label}>WhatsApp Number (e.g. 917977179807)</label>
               <input name="whatsapp_number" defaultValue={contact?.whatsapp_number} className={input} />
             </div>
           </div>

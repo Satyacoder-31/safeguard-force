@@ -72,10 +72,10 @@ export const FALLBACK_SITE_SETTINGS: SiteSettings = {
   tagline: "Your Security. Our Priority.",
   logo_url: "/images/safelogo.png",
   favicon_url: "/images/safelogo.png",
-  primary_phone: "9323581437",
+  primary_phone: "7977179807",
   secondary_phone: "9136645289",
-  email: "info@safeguardforce.in",
-  whatsapp_number: "919323581437",
+  email: "safeguardforce02@gmail.com",
+  whatsapp_number: "917977179807",
   whatsapp_message:
     "Hello SAFE Guard FORCE, I would like to discuss your security/facility management services.",
   address_line_1: "C 517, Kailash Esplanade",
@@ -87,13 +87,13 @@ export const FALLBACK_SITE_SETTINGS: SiteSettings = {
   google_maps_url:
     "https://maps.google.com/?q=C+517+Kailash+Esplanade+Ghatkopar+West+Mumbai",
   support_text: "24/7 Professional Assistance",
-  top_bar_text: "Mumbai • Nationwide Service Capability",
+  top_bar_text: "Pan-India • Integrated Facility & Security Solutions",
   footer_description:
     "Integrated security, facility management, technical and investigation solutions. Professional, disciplined and reliable services for safer, cleaner and efficiently managed premises.",
   copyright_text: "SAFE Guard FORCE. All Rights Reserved.",
   facebook_url: "",
-  instagram_url: "",
-  linkedin_url: "",
+  instagram_url: "https://www.instagram.com/safeguardforce",
+  linkedin_url: "https://www.linkedin.com/company/safeguardforce",
   youtube_url: "",
   twitter_url: "",
   primary_color: "#0A1931",
@@ -110,18 +110,23 @@ export const getSiteSettings = async (): Promise<SiteSettings> =>
   unstable_cache(
     async () => {
       try {
-        const { data } = await admin()
-          .from("site_settings")
-          .select("*")
-          .ilike("site_name", "%SAFE%")
-          .limit(1);
-        if (data?.[0]) return data[0] as SiteSettings;
-        const { data: anyRow } = await admin()
-          .from("site_settings")
-          .select("*")
-          .order("updated_at", { ascending: false })
-          .limit(1);
-        return (anyRow?.[0] as SiteSettings) ?? FALLBACK_SITE_SETTINGS;
+        const [{ data }, { data: anyRow }, { data: brochureSec }] = await Promise.all([
+          admin().from("site_settings").select("*").ilike("site_name", "%SAFE%").limit(1),
+          admin().from("site_settings").select("*").order("updated_at", { ascending: false }).limit(1),
+          admin().from("homepage_sections").select("*").eq("section_key", "brochure").limit(1),
+        ]);
+
+        const base = (data?.[0] || anyRow?.[0] || FALLBACK_SITE_SETTINGS) as SiteSettings;
+        const brochureData: Partial<SiteSettings> = {};
+
+        if (brochureSec?.[0]) {
+          const sec = brochureSec[0];
+          brochureData.brochure_url = sec.button_url || sec.image_url || base.brochure_url || "/brochure.pdf";
+          brochureData.brochure_title = sec.button_text || sec.title || base.brochure_title || "SAFE Guard FORCE Corporate Brochure";
+          brochureData.brochure_enabled = sec.is_visible ?? true;
+        }
+
+        return { ...base, ...brochureData };
       } catch {
         return FALLBACK_SITE_SETTINGS;
       }
@@ -129,6 +134,67 @@ export const getSiteSettings = async (): Promise<SiteSettings> =>
     ["cms-site-settings"],
     { tags: [TAGS.settings], revalidate: 300 },
   )();
+
+export type BrochurePageSettings = {
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  hero_image: string;
+  action_bar_text: string;
+  download_button_text: string;
+  open_button_text: string;
+  footer_card_title: string;
+  footer_card_subtitle: string;
+  pdf_url: string;
+};
+
+export const FALLBACK_BROCHURE_PAGE_SETTINGS: BrochurePageSettings = {
+  eyebrow: "Official Corporate Profile",
+  title: "SAFE GUARD FORCE Corporate Brochure",
+  subtitle: "Explore our official corporate brochure containing operational capabilities, leadership foreword, statutory compliance, and service portfolio.",
+  hero_image: "/images/hero-mumbai-security.png",
+  action_bar_text: "Official Corporate Profile • PASARA License No. 293 • Govt. of Maharashtra",
+  download_button_text: "Download PDF Brochure",
+  open_button_text: "Open PDF in New Tab",
+  footer_card_title: "SAFE GUARD FORCE Corporate Profile",
+  footer_card_subtitle: "View the complete brochure above or download the official PDF file directly to your device.",
+  pdf_url: "/brochure.pdf",
+};
+
+export async function getBrochurePageSettings(): Promise<BrochurePageSettings> {
+  return unstable_cache(
+    async () => {
+      try {
+        const { data } = await admin()
+          .from("homepage_sections")
+          .select("*")
+          .eq("section_key", "brochure_page")
+          .limit(1);
+
+        const sec = data?.[0];
+        if (!sec) return FALLBACK_BROCHURE_PAGE_SETTINGS;
+        const itemsObj = (sec?.items?.[0] || {}) as Record<string, string>;
+
+        return {
+          eyebrow: sec?.eyebrow || FALLBACK_BROCHURE_PAGE_SETTINGS.eyebrow,
+          title: sec?.title || FALLBACK_BROCHURE_PAGE_SETTINGS.title,
+          subtitle: sec?.subtitle || FALLBACK_BROCHURE_PAGE_SETTINGS.subtitle,
+          hero_image: sec?.image_url || FALLBACK_BROCHURE_PAGE_SETTINGS.hero_image,
+          action_bar_text: itemsObj.action_bar_text || FALLBACK_BROCHURE_PAGE_SETTINGS.action_bar_text,
+          download_button_text: sec?.button_text || FALLBACK_BROCHURE_PAGE_SETTINGS.download_button_text,
+          open_button_text: itemsObj.open_button_text || FALLBACK_BROCHURE_PAGE_SETTINGS.open_button_text,
+          footer_card_title: itemsObj.footer_card_title || FALLBACK_BROCHURE_PAGE_SETTINGS.footer_card_title,
+          footer_card_subtitle: sec?.description || itemsObj.footer_card_subtitle || FALLBACK_BROCHURE_PAGE_SETTINGS.footer_card_subtitle,
+          pdf_url: sec?.button_url || FALLBACK_BROCHURE_PAGE_SETTINGS.pdf_url,
+        };
+      } catch {
+        return FALLBACK_BROCHURE_PAGE_SETTINGS;
+      }
+    },
+    ["cms-brochure-page-settings"],
+    { tags: [TAGS.settings, TAGS.sections], revalidate: 300 },
+  )();
+}
 
 /* -------------------------------------------------------------------------- */
 /* Navigation                                                                 */
@@ -222,8 +288,8 @@ export const FALLBACK_HERO_SLIDES: HeroSlide[] = [
     alt_text: "SAFE Guard FORCE trained security personnel",
     button_text: "Get a Free Consultation",
     button_url: "/contact",
-    phone_button_text: "Call 9323581437",
-    phone_number: "9323581437",
+    phone_button_text: "Call 7977179807",
+    phone_number: "7977179807",
     sort_order: 0,
     is_active: true,
     duration_ms: 5000,
@@ -240,8 +306,8 @@ export const FALLBACK_HERO_SLIDES: HeroSlide[] = [
     alt_text: "Premium corporate building entrance with security",
     button_text: "Get a Free Consultation",
     button_url: "/contact",
-    phone_button_text: "Call 9323581437",
-    phone_number: "9323581437",
+    phone_button_text: "Call 7977179807",
+    phone_number: "7977179807",
     sort_order: 1,
     is_active: true,
     duration_ms: 5000,
@@ -258,8 +324,8 @@ export const FALLBACK_HERO_SLIDES: HeroSlide[] = [
     alt_text: "Security personnel monitoring CCTV",
     button_text: "Get a Free Consultation",
     button_url: "/contact",
-    phone_button_text: "Call 9323581437",
-    phone_number: "9323581437",
+    phone_button_text: "Call 7977179807",
+    phone_number: "7977179807",
     sort_order: 2,
     is_active: true,
     duration_ms: 5000,
@@ -276,8 +342,8 @@ export const FALLBACK_HERO_SLIDES: HeroSlide[] = [
     alt_text: "Professional housekeeping team",
     button_text: "Get a Free Consultation",
     button_url: "/contact",
-    phone_button_text: "Call 9323581437",
-    phone_number: "9323581437",
+    phone_button_text: "Call 7977179807",
+    phone_number: "7977179807",
     sort_order: 3,
     is_active: true,
     duration_ms: 5000,
@@ -322,7 +388,7 @@ export const FALLBACK_HOMEPAGE_SECTIONS: HomepageSection[] = [
     button_url: "/about",
     items: [
       { a: "24/7", b: "Support" },
-      { a: "Pan-Mumbai", b: "Presence" },
+      { a: "Pan-India", b: "Presence" },
       { a: "One-Roof", b: "Solutions" },
     ],
     is_visible: true,
@@ -351,8 +417,8 @@ export const FALLBACK_HOMEPAGE_SECTIONS: HomepageSection[] = [
   {
     id: "sec-why",
     section_key: "why_choose_us",
-    eyebrow: "Why Organizations Trust Us",
-    title: "Why Organizations Trust\nSAFE Guard FORCE",
+    eyebrow: "WHY CHOOSE US",
+    title: "Why Organizations Trust SAFE Guard FORCE",
     subtitle: "",
     description: "Structured supervision, verified manpower and continuous improvement — the reasons organizations rely on SAFE Guard FORCE.",
     image_url: "",
@@ -994,10 +1060,10 @@ export const FALLBACK_CONTACT_SETTINGS: ContactSettings = {
   form_subtitle: "Tell us about your premises and service needs — we'll respond promptly.",
   assistance_hours: "24/7 Professional Assistance",
   assistance_note: "Prompt response for enquiries and operational support.",
-  phone_numbers: ["9323581437", "9136645289"],
-  whatsapp_number: "919323581437",
+  phone_numbers: ["7977179807", "9136645289"],
+  whatsapp_number: "917977179807",
   whatsapp_message: "Hello SAFE Guard FORCE, I would like to discuss your services.",
-  email: "info@safeguardforce.in",
+  email: "safeguardforce02@gmail.com",
   address: {
     line1: "C 517, Kailash Esplanade",
     line2: "Opp. Shreyash Cinema, LBS Marg",

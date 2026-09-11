@@ -56,7 +56,7 @@ function SlideForm({ slide, onDone }: { slide?: HeroSlide; onDone: () => void })
         </div>
         <div>
           <label className={label}>Phone Button Text</label>
-          <input name="phone_button_text" defaultValue={slide?.phone_button_text} className={input} placeholder="Call 9323581437" />
+          <input name="phone_button_text" defaultValue={slide?.phone_button_text} className={input} placeholder="Call 7977179807" />
         </div>
         <div>
           <label className={label}>Phone Number</label>
