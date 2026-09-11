@@ -5,7 +5,7 @@ import { requireAdmin } from "@/lib/supabase/auth";
 import { logActivity } from "@/lib/cms/logs";
 import { revalidatePath } from "next/cache";
 import { slugify } from "@/lib/utils";
-import type { SiteSettings, Statistic, Enquiry, Profile } from "@/types/database";
+import type { SiteSettings, Statistic, Enquiry, Profile, ContactSettings } from "@/types/database";
 
 /* ========================================================================== */
 /* Shared helpers                                                             */
@@ -714,13 +714,34 @@ export async function saveContactSettings(_prev: unknown, formData: FormData): P
     const profile = await guard();
     const admin = createAdminClient();
     const { data: existing } = await admin.from("contact_settings").select("id").limit(1);
-    const values = {
+
+    const hero_image_url = String(formData.get("hero_image_url") || "").trim();
+    const map_image_url = String(formData.get("map_image_url") || "").trim();
+
+    // 1. Sync hero & map image URLs to homepage_sections (section_key: "contact_page")
+    try {
+      await admin.from("homepage_sections").upsert(
+        {
+          section_key: "contact_page",
+          title: "Contact Page Media",
+          image_url: hero_image_url,
+          items: [{ hero_image_url, map_image_url }],
+          is_visible: true,
+          sort_order: 999,
+        },
+        { onConflict: "section_key" }
+      );
+    } catch (e) {
+      console.warn("[admin] Could not update contact_page section media:", e);
+    }
+
+    const values: Record<string, unknown> = {
       contact_heading: String(formData.get("contact_heading") || ""),
       contact_subtitle: String(formData.get("contact_subtitle") || ""),
       form_heading: String(formData.get("form_heading") || ""),
       form_subtitle: String(formData.get("form_subtitle") || ""),
-      hero_image_url: String(formData.get("hero_image_url") || ""),
-      map_image_url: String(formData.get("map_image_url") || ""),
+      hero_image_url,
+      map_image_url,
       assistance_hours: String(formData.get("assistance_hours") || ""),
       assistance_note: String(formData.get("assistance_note") || ""),
       phone_numbers: String(formData.get("phone_numbers") || "").split("\n").map((s) => s.trim()).filter(Boolean),
@@ -741,13 +762,30 @@ export async function saveContactSettings(_prev: unknown, formData: FormData): P
 
     let error;
     if (existing?.[0]) {
-      ({ error } = await admin.from("contact_settings").update(values).eq("id", existing[0].id));
+      ({ error } = await admin.from("contact_settings").update(values as unknown as Partial<ContactSettings>).eq("id", existing[0].id));
     } else {
-      ({ error } = await admin.from("contact_settings").insert(values));
+      ({ error } = await admin.from("contact_settings").insert(values as unknown as Partial<ContactSettings>));
     }
+
+    // Fallback if contact_settings table in DB is missing hero_image_url or map_image_url columns
+    if (
+      error &&
+      (error.message.includes("hero_image_url") ||
+        error.message.includes("map_image_url") ||
+        error.code === "PGRST204")
+    ) {
+      delete values.hero_image_url;
+      delete values.map_image_url;
+      if (existing?.[0]) {
+        ({ error } = await admin.from("contact_settings").update(values as unknown as Partial<ContactSettings>).eq("id", existing[0].id));
+      } else {
+        ({ error } = await admin.from("contact_settings").insert(values as unknown as Partial<ContactSettings>));
+      }
+    }
+
     if (error) throw error;
     await logActivity({ adminUserId: profile.id, action: "Updated contact settings", entityType: "contact_settings" });
-    publicRevalidate();
+    await publicRevalidate();
     return { ok: true };
   } catch (err) {
     return fail(err, "Could not save contact settings.");

@@ -1058,6 +1058,8 @@ export const FALLBACK_CONTACT_SETTINGS: ContactSettings = {
   contact_subtitle: "Reach our team for a free consultation, site assessment or confidential discussion. Mumbai-based, nationwide capability.",
   form_heading: "Request a Consultation",
   form_subtitle: "Tell us about your premises and service needs — we'll respond promptly.",
+  hero_image_url: "/images/team-inspection.png",
+  map_image_url: "/images/mumbai-business-district.png",
   assistance_hours: "24/7 Professional Assistance",
   assistance_note: "Prompt response for enquiries and operational support.",
   phone_numbers: ["7977179807", "9136645289"],
@@ -1093,18 +1095,46 @@ export async function getContactSettings(): Promise<ContactSettings | null> {
   return unstable_cache(
     async () => {
       try {
-        const { data } = await admin()
-          .from("contact_settings")
-          .select("*")
-          .order("created_at", { ascending: true })
-          .limit(1);
-        return (data?.[0] as ContactSettings) ?? FALLBACK_CONTACT_SETTINGS;
+        const [{ data }, { data: secData }] = await Promise.all([
+          admin()
+            .from("contact_settings")
+            .select("*")
+            .order("created_at", { ascending: true })
+            .limit(1),
+          admin()
+            .from("homepage_sections")
+            .select("*")
+            .eq("section_key", "contact_page")
+            .limit(1),
+        ]);
+
+        const base = (data?.[0] as ContactSettings) ?? FALLBACK_CONTACT_SETTINGS;
+        const sec = secData?.[0];
+        const itemsObj = (sec?.items?.[0] || {}) as Record<string, string>;
+
+        const hero_image_url =
+          base.hero_image_url ||
+          itemsObj.hero_image_url ||
+          sec?.image_url ||
+          FALLBACK_CONTACT_SETTINGS.hero_image_url ||
+          "/images/team-inspection.png";
+        const map_image_url =
+          base.map_image_url ||
+          itemsObj.map_image_url ||
+          FALLBACK_CONTACT_SETTINGS.map_image_url ||
+          "/images/mumbai-business-district.png";
+
+        return {
+          ...base,
+          hero_image_url,
+          map_image_url,
+        };
       } catch {
         return FALLBACK_CONTACT_SETTINGS;
       }
     },
     ["cms-contact"],
-    { tags: [TAGS.contact], revalidate: 300 },
+    { tags: [TAGS.contact], revalidate: 300 }
   )();
 }
 

@@ -240,6 +240,8 @@ create table public.contact_settings (
   contact_subtitle text not null default '',
   form_heading text not null default '',
   form_subtitle text not null default '',
+  hero_image_url text not null default '',
+  map_image_url text not null default '',
   assistance_hours text not null default '24/7 Professional Assistance',
   assistance_note text not null default '',
   phone_numbers jsonb not null default '[]'::jsonb,
