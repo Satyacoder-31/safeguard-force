@@ -52,7 +52,7 @@ export default async function AboutPage() {
             <p className="text-slate-500 leading-relaxed mt-4 text-sm">{about.who_we_are_secondary}</p>
             <div className="grid grid-cols-2 gap-4 mt-8">
               <div className="bg-[#F8FAFC] border border-slate-100 p-5">
-                <div className="text-[#0A1931] font-bold text-sm">Mumbai-Centric</div>
+                <div className="text-[#0A1931] font-bold text-sm">Pan-India</div>
                 <div className="text-slate-500 text-xs mt-1">Deep local operational knowledge with nationwide capability</div>
               </div>
               <div className="bg-[#F8FAFC] border border-slate-100 p-5">
@@ -66,14 +66,13 @@ export default async function AboutPage() {
               <div className="col-span-3">
                 <img src={about.who_we_are_image_url} alt="SAFE Guard FORCE uniformed guard" className="w-full h-[380px] object-cover object-top border border-slate-200" />
               </div>
-              <div className="col-span-2 flex flex-col gap-3">
-                <div className="bg-white border border-slate-200 p-4 flex flex-col items-center text-center">
-                  <img src={settings.logo_url} alt="SAFE Guard FORCE shield" className="w-24 h-24 object-contain" />
+              <div className="col-span-2 flex flex-col gap-3 h-[380px]">
+                <div className="bg-white border border-slate-200 p-4 flex flex-col items-center justify-center text-center flex-1">
+                  <img src={settings.logo_url} alt="SAFE Guard FORCE shield" className="w-20 h-20 sm:w-24 sm:h-24 object-contain" />
                   <div className="text-[#0A1931] font-black text-xs tracking-widest uppercase mt-2">SAFE GUARD FORCE</div>
                   <div className="text-[#C5A253] text-[10px] tracking-widest uppercase font-bold">{settings.tagline}</div>
                 </div>
-                <img src="/images/team-inspection.png" alt="Team" className="h-[118px] w-full object-cover" />
-                <img src="/images/team-inspection.png" alt="Facility" className="h-[118px] w-full object-cover" />
+                <img src="/images/team-inspection.png" alt="Team" className="w-full flex-1 min-h-0 object-cover border border-slate-200" />
               </div>
             </div>
             <div className="bg-[#0A1931] p-4 flex items-center gap-3">
