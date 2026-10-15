@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
-  Search, Bell, Sun, Moon, Globe, Shield, 
-  ChevronDown, CheckCircle, AlertTriangle, AlertOctagon, 
-  LogOut, Crown, Building2, Users, Smartphone, Clock, 
-  Radio, Sparkles, Check, User, ExternalLink
+  Search, Bell, Sun, Moon, Shield, ChevronDown, 
+  Check, LogOut, Smartphone, User, Crown, 
+  Building2, Users, Clock, Sparkles
 } from 'lucide-react';
 import { useERP } from '../../context/ERPContext';
 import { RoleType } from '../../types/erp';
@@ -40,276 +39,213 @@ export const TopNav: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Unread alerts count (SOS + critical incidents)
   const criticalCount = sosAlerts.filter(s => s.status === 'Triggered' || s.status === 'Acknowledged').length +
                         incidents.filter(i => i.severity === 'Critical' && i.status !== 'Resolved').length;
 
-  const rolesList: { role: RoleType; label: string; group: string; icon: React.ElementType }[] = [
-    { role: 'SUPER_ADMIN', label: 'Super Admin (MD / Owner)', group: 'Enterprise Leadership', icon: Crown },
-    { role: 'MANAGEMENT', label: 'Executive Board', group: 'Enterprise Leadership', icon: Crown },
-    { role: 'OPERATIONS_MANAGER', label: 'Operations Head', group: 'Command & Field', icon: Shield },
-    { role: 'SITE_SUPERVISOR', label: 'Site Supervisor', group: 'Command & Field', icon: Users },
-    { role: 'GUARD_FIELD', label: 'Guard (Field Duty)', group: 'Command & Field', icon: Smartphone },
-    { role: 'HR_RECRUITMENT', label: 'HR & Compliance', group: 'Back Office & Finance', icon: Users },
-    { role: 'PAYROLL_ACCOUNTS', label: 'Payroll & Accounts', group: 'Back Office & Finance', icon: Clock },
-    { role: 'SALES_CRM', label: 'Sales & Bidding Head', group: 'Back Office & Finance', icon: Sparkles },
-    { role: 'CLIENT_USER', label: 'Client Admin (DLF)', group: 'External Portal', icon: Building2 }
+  const rolesList: { role: RoleType; label: string; icon: React.ElementType }[] = [
+    { role: 'SUPER_ADMIN', label: 'Super Admin (Owner)', icon: Crown },
+    { role: 'OPERATIONS_MANAGER', label: 'Operations Head', icon: Shield },
+    { role: 'HR_RECRUITMENT', label: 'HR & Compliance', icon: Users },
+    { role: 'PAYROLL_ACCOUNTS', label: 'Payroll & Accounts', icon: Clock },
+    { role: 'CLIENT_USER', label: 'Client Admin (DLF)', icon: Building2 },
+    { role: 'GUARD_FIELD', label: 'Guard (Field Duty)', icon: Smartphone }
   ];
 
   const getModuleTitle = () => {
     switch (activeModule) {
-      case 'dashboard': return t('dashboard');
-      case 'guards': return t('guards');
-      case 'clients': return t('clients');
-      case 'sites': return t('sites');
-      case 'contracts': return t('contracts');
-      case 'deployments': return t('deployments');
-      case 'attendance': return t('attendance');
-      case 'patrol': return t('patrol');
-      case 'incidents': return t('incidents');
-      case 'sos': return t('sos');
-      case 'recruitment': return t('recruitment');
-      case 'hrCompliance': return t('hrCompliance');
-      case 'payroll': return t('payroll');
-      case 'billing': return t('billing');
-      case 'collections': return t('collections');
-      case 'crm': return t('crm');
-      case 'clientPortal': return t('clientPortal');
-      case 'reports': return t('reports');
-      case 'fieldMobile': return t('fieldMobile');
-      case 'admin': return t('admin');
-      case 'helpCenter': return t('helpCenter');
+      case 'dashboard': return t('dashboard') || 'Executive Dashboard';
+      case 'guards': return t('guards') || 'Guard Directory';
+      case 'clients': return t('clients') || 'Clients & Branches';
+      case 'sites': return t('sites') || 'Sites & Geofencing';
+      case 'contracts': return t('contracts') || 'Contracts & Rates';
+      case 'deployments': return t('deployments') || 'Deployments & Rosters';
+      case 'attendance': return t('attendance') || 'GPS Live Attendance';
+      case 'patrol': return t('patrol') || 'Patrol & Checkpoints';
+      case 'incidents': return t('incidents') || 'Incident Management';
+      case 'sos': return t('sos') || 'SOS & Emergency Center';
+      case 'recruitment': return t('recruitment') || 'Recruitment Funnel';
+      case 'hrCompliance': return t('hrCompliance') || 'Leave & Compliance';
+      case 'payroll': return t('payroll') || 'Payroll & Salaries';
+      case 'billing': return t('billing') || 'Client Invoicing';
+      case 'collections': return t('collections') || 'Collections & AR';
+      case 'crm': return t('crm') || 'CRM & Sales Pipeline';
+      case 'clientPortal': return t('clientPortal') || 'Client Self-Service';
+      case 'reports': return t('reports') || 'Reports & Analytics';
+      case 'fieldMobile': return t('fieldMobile') || 'Mobile Field Duty';
+      case 'admin': return t('admin') || 'System Administration';
+      case 'helpCenter': return t('helpCenter') || 'SOPs & Onboarding';
       default: return 'Executive Dashboard';
     }
   };
 
-  const getCategoryTitle = () => {
-    if (['dashboard', 'sos', 'incidents'].includes(activeModule)) return 'Command';
-    if (['guards', 'clients', 'sites', 'deployments', 'attendance', 'patrol'].includes(activeModule)) return 'Operations';
-    if (['recruitment', 'hrCompliance', 'fieldMobile'].includes(activeModule)) return 'Workforce';
-    if (['contracts', 'payroll', 'billing', 'collections'].includes(activeModule)) return 'Finance';
-    return 'Portal';
-  };
-
   return (
     <header className="erp-topbar">
-      {/* Left: Breadcrumbs & Live Operation Indicators */}
+      {/* Left: Clean Breadcrumb & Title */}
       <div className="topbar-left">
-        <div className="page-breadcrumb">
-          <div className="breadcrumb-brand-icon">
-            <Shield size={14} className="gold-text" />
-          </div>
-          <span className="breadcrumb-category">{getCategoryTitle()}</span>
-          <span className="breadcrumb-separator">/</span>
-          <span className="breadcrumb-current">{getModuleTitle()}</span>
-        </div>
-
-        {/* Live operational badge */}
-        <div className="topbar-live-status-pill">
-          <span className="live-status-dot" />
-          <span className="live-status-text">
-            <strong>{kpis.activeGuardsCount}</strong> Guards Live
+        <div className="topbar-title-wrap">
+          <span className="topbar-page-title">{getModuleTitle()}</span>
+          <span className="topbar-system-indicator">
+            <span className="indicator-dot" />
+            <span className="indicator-text">{kpis.activeGuardsCount} Guards Live</span>
           </span>
-          <span className="live-status-divider">•</span>
-          <span className="live-shift-text">Day Shift</span>
         </div>
       </div>
 
-      {/* Center: Sleek Global Search Trigger */}
-      <div className="topbar-center">
+      {/* Right: Clean, Sorted Actions */}
+      <div className="topbar-right">
+        {/* Minimal Global Search Trigger */}
         <button 
-          className="global-search-trigger"
+          className="topbar-search-btn"
           onClick={() => setIsSearchOpen(true)}
-          title="Search anything across ERP (Cmd+K / Ctrl+K)"
+          title="Search anything (Ctrl+K)"
           type="button"
         >
           <Search size={14} className="search-icon" />
-          <span className="search-placeholder-text">{t('searchPlaceholder')}</span>
-          <span className="kbd-shortcut">Ctrl K</span>
-        </button>
-      </div>
-
-      {/* Right: Actions, Role Switcher, Controls & User Profile */}
-      <div className="topbar-right">
-        {/* Quick SOS Emergency Jump Button */}
-        <button
-          className={`topbar-sos-btn ${criticalCount > 0 ? 'active-alert' : ''}`}
-          onClick={() => setActiveModule('sos')}
-          title="Emergency SOS Console"
-          type="button"
-        >
-          <AlertOctagon size={15} />
-          <span>{criticalCount > 0 ? `${criticalCount} SOS` : 'SOS Console'}</span>
+          <span className="search-text">Search...</span>
+          <span className="search-kbd">Ctrl K</span>
         </button>
 
-        {/* Role Switcher Pill & Dropdown */}
-        <div className="topbar-role-dropdown-container" ref={roleDropdownRef}>
+        <div className="topbar-divider" />
+
+        {/* Clean Role Switcher Dropdown */}
+        <div className="topbar-dropdown-wrap" ref={roleDropdownRef}>
           <button 
-            className="role-badge-pill"
+            className="topbar-role-selector"
             onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
-            title="Switch User Role to test permissions & views"
+            title="Switch demo persona to test views"
             type="button"
           >
-            <Shield size={13} className="gold-text" />
-            <span className="role-text-label">{currentUser.role.replace('_', ' ')}</span>
-            <ChevronDown size={12} className={`role-chevron ${isRoleDropdownOpen ? 'rotated' : ''}`} />
+            <span className="role-dot" />
+            <span className="role-label">{currentUser.role.replace('_', ' ')}</span>
+            <ChevronDown size={12} className={`role-arrow ${isRoleDropdownOpen ? 'open' : ''}`} />
           </button>
 
           {isRoleDropdownOpen && (
-            <div className="topbar-role-menu">
-              <div className="role-menu-header">
-                <span className="role-menu-title">Switch Enterprise Persona</span>
-                <span className="role-menu-subtitle">9 Roles Configured</span>
-              </div>
-              <div className="role-menu-scroll">
-                {rolesList.map(({ role, label, icon: RoleIcon }) => {
-                  const isCurrent = currentUser.role === role;
-                  return (
-                    <button
-                      key={role}
-                      type="button"
-                      onClick={() => {
-                        switchRole(role);
-                        setIsRoleDropdownOpen(false);
-                      }}
-                      className={`role-menu-item ${isCurrent ? 'active' : ''}`}
-                    >
-                      <div className="role-item-left">
-                        <RoleIcon size={14} className={isCurrent ? 'gold-text' : 'muted-text'} />
-                        <span className="role-item-name">{label}</span>
-                      </div>
-                      {isCurrent && <Check size={13} className="gold-text" />}
-                    </button>
-                  );
-                })}
-              </div>
+            <div className="clean-dropdown-menu role-menu">
+              <div className="dropdown-label">Select Demo Persona</div>
+              {rolesList.map(({ role, label, icon: RoleIcon }) => {
+                const isSelected = currentUser.role === role;
+                return (
+                  <button
+                    key={role}
+                    type="button"
+                    onClick={() => {
+                      switchRole(role);
+                      setIsRoleDropdownOpen(false);
+                    }}
+                    className={`dropdown-item ${isSelected ? 'active' : ''}`}
+                  >
+                    <RoleIcon size={14} className={isSelected ? 'item-icon gold' : 'item-icon'} />
+                    <span className="item-text">{label}</span>
+                    {isSelected && <Check size={13} className="item-check" />}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
 
-        {/* Language Switcher (EN | हिन्दी) */}
-        <div className="topbar-lang-pill" title="Toggle Language (English / हिंदी)">
+        {/* Minimal Language Switcher */}
+        <div className="topbar-lang-toggle">
           <button 
             type="button"
-            className={`topbar-lang-item ${language === 'en' ? 'active' : ''}`}
+            className={`lang-option ${language === 'en' ? 'active' : ''}`}
             onClick={() => toggleLanguage()}
           >
             EN
           </button>
+          <span className="lang-sep">/</span>
           <button 
             type="button"
-            className={`topbar-lang-item ${language === 'hi' ? 'active' : ''}`}
+            className={`lang-option ${language === 'hi' ? 'active' : ''}`}
             onClick={() => toggleLanguage()}
           >
             हिन्दी
           </button>
         </div>
 
-        {/* Theme Toggle (Light / Dark) */}
+        {/* Theme Toggle */}
         <button 
           type="button"
-          className="topbar-icon-action"
+          className="topbar-icon-btn"
           onClick={toggleTheme}
-          title={theme === 'dark' ? t('lightMode') : t('darkMode')}
+          title={theme === 'dark' ? 'Switch to Light' : 'Switch to Dark'}
         >
-          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
         </button>
 
-        {/* Notifications Button */}
+        {/* Notification Bell */}
         <button 
           type="button"
-          className={`topbar-icon-action ${criticalCount > 0 ? 'has-badge' : ''}`}
+          className={`topbar-icon-btn ${criticalCount > 0 ? 'has-alerts' : ''}`}
           onClick={() => setIsNotificationOpen(true)}
-          title={t('notifications')}
+          title="Notifications"
         >
-          <Bell size={16} />
-          {criticalCount > 0 && (
-            <span className="notification-counter-badge">{criticalCount}</span>
-          )}
+          <Bell size={15} />
+          {criticalCount > 0 && <span className="notification-dot" />}
         </button>
 
-        {/* User Profile Pill & Dropdown */}
-        <div className="topbar-profile-container" ref={profileDropdownRef}>
+        {/* User Profile Menu */}
+        <div className="topbar-dropdown-wrap" ref={profileDropdownRef}>
           <div 
-            className="topbar-user-pill" 
+            className="topbar-user-trigger"
             onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-            title={`Signed in as ${currentUser.name}`}
+            title={`Account: ${currentUser.name}`}
           >
-            <div className="topbar-avatar-circle">
-              {currentUser.name ? currentUser.name.charAt(0) : 'A'}
-              <span className="avatar-live-indicator" />
+            <div className="user-avatar">
+              {currentUser.name ? currentUser.name.charAt(0) : 'U'}
             </div>
-            <div className="topbar-user-names">
-              <span className="user-firstname">{currentUser.name.split(' ')[0]}</span>
-              <span className="user-shortrole">{currentUser.role.split('_')[0]}</span>
-            </div>
-            <ChevronDown size={12} className={`profile-chevron ${isProfileDropdownOpen ? 'rotated' : ''}`} />
+            <span className="user-name">{currentUser.name.split(' ')[0]}</span>
+            <ChevronDown size={11} className={`user-arrow ${isProfileDropdownOpen ? 'open' : ''}`} />
           </div>
 
           {isProfileDropdownOpen && (
-            <div className="topbar-profile-menu">
-              <div className="profile-menu-header">
-                <div className="profile-menu-avatar">
-                  {currentUser.name ? currentUser.name.charAt(0) : 'A'}
-                </div>
-                <div className="profile-menu-meta">
-                  <span className="profile-menu-name">{currentUser.name}</span>
-                  <span className="profile-menu-email">{currentUser.email}</span>
-                  <span className="profile-menu-role-badge">{currentUser.role.replace('_', ' ')}</span>
-                </div>
+            <div className="clean-dropdown-menu profile-menu">
+              <div className="profile-header-box">
+                <span className="profile-fullname">{currentUser.name}</span>
+                <span className="profile-email">{currentUser.email}</span>
+                <span className="profile-role-tag">{currentUser.role.replace('_', ' ')}</span>
               </div>
 
-              <div className="profile-menu-links">
-                <button 
-                  type="button" 
-                  className="profile-menu-item"
-                  onClick={() => {
-                    setActiveModule('fieldMobile');
-                    setIsProfileDropdownOpen(false);
-                  }}
-                >
-                  <Smartphone size={14} />
-                  <span>Mobile Field Duty View</span>
-                </button>
+              <div className="dropdown-divider" />
 
-                <button 
-                  type="button" 
-                  className="profile-menu-item"
-                  onClick={() => {
-                    setActiveModule('admin');
-                    setIsProfileDropdownOpen(false);
-                  }}
-                >
-                  <Shield size={14} />
-                  <span>System Administration & Logs</span>
-                </button>
+              <button 
+                type="button" 
+                className="dropdown-item"
+                onClick={() => {
+                  setActiveModule('fieldMobile');
+                  setIsProfileDropdownOpen(false);
+                }}
+              >
+                <Smartphone size={14} className="item-icon" />
+                <span className="item-text">Mobile Guard Duty View</span>
+              </button>
 
-                <button 
-                  type="button" 
-                  className="profile-menu-item"
-                  onClick={() => {
-                    setActiveModule('clientPortal');
-                    setIsProfileDropdownOpen(false);
-                  }}
-                >
-                  <Building2 size={14} />
-                  <span>Client Self-Service Portal</span>
-                </button>
-              </div>
+              <button 
+                type="button" 
+                className="dropdown-item"
+                onClick={() => {
+                  setActiveModule('admin');
+                  setIsProfileDropdownOpen(false);
+                }}
+              >
+                <Shield size={14} className="item-icon" />
+                <span className="item-text">System Settings & Logs</span>
+              </button>
 
-              <div className="profile-menu-footer">
-                <button
-                  type="button"
-                  className="profile-logout-btn"
-                  onClick={() => {
-                    setIsProfileDropdownOpen(false);
-                    logout();
-                  }}
-                >
-                  <LogOut size={14} />
-                  <span>Sign Out to Login Page</span>
-                </button>
-              </div>
+              <div className="dropdown-divider" />
+
+              <button 
+                type="button" 
+                className="dropdown-item logout-item"
+                onClick={() => {
+                  setIsProfileDropdownOpen(false);
+                  logout();
+                }}
+              >
+                <LogOut size={14} className="item-icon danger" />
+                <span className="item-text danger">Sign Out to Login Page</span>
+              </button>
             </div>
           )}
         </div>
