@@ -1943,3 +1943,397 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 10px;
   letter-spacing: 0.04em;
 }
+
+/* ==========================================================================
+   SAFE GUARD FORCE — REFERENCE DASHBOARD UI & INTERACTIVE BAR CHARTS
+   Matches visual spec from reference screenshot
+   ========================================================================== */
+
+.sgf-reference-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-bottom: 32px;
+}
+
+/* Row 1: Top Metrics Grid */
+.sgf-top-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 1200px) {
+  .sgf-top-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .sgf-top-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sgf-top-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 94px;
+  box-shadow: var(--shadow-xs);
+  transition: all var(--transition-fast);
+}
+
+.sgf-top-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Strength Progress Card */
+.sgf-progress-track {
+  width: 100%;
+  height: 6px;
+  background: var(--border-subtle);
+  border-radius: 9999px;
+  overflow: hidden;
+  margin: 8px 0 6px;
+}
+
+.sgf-progress-fill-orange {
+  height: 100%;
+  background: #ea580c;
+  border-radius: 9999px;
+}
+
+.sgf-progress-fill-green {
+  height: 100%;
+  background: #10b981;
+  border-radius: 9999px;
+}
+
+/* Incident Badges Pill Row */
+.sgf-incident-pills-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sgf-pill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 9999px;
+}
+
+.sgf-pill.gray {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.sgf-pill.orange {
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+}
+
+.sgf-pill.blue {
+  background: #f0f9ff;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+[data-theme="dark"] .sgf-pill.gray {
+  background: #1e293b;
+  color: #94a3b8;
+  border-color: #334155;
+}
+
+[data-theme="dark"] .sgf-pill.orange {
+  background: rgba(234, 88, 12, 0.18);
+  color: #fb923c;
+  border-color: rgba(234, 88, 12, 0.35);
+}
+
+[data-theme="dark"] .sgf-pill.blue {
+  background: rgba(2, 132, 199, 0.18);
+  color: #38bdf8;
+  border-color: rgba(2, 132, 199, 0.35);
+}
+
+/* Row 2: Actionable Cards (3 Columns) */
+.sgf-action-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 1024px) {
+  .sgf-action-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sgf-action-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-xs);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.sgf-action-card:hover {
+  border-color: var(--brand-gold-400);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.sgf-action-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.sgf-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sgf-icon-box.purple {
+  background: #f3f0ff;
+  color: #7c3aed;
+}
+
+.sgf-icon-box.cyan {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.sgf-icon-box.amber {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+[data-theme="dark"] .sgf-icon-box.purple {
+  background: rgba(124, 58, 237, 0.18);
+  color: #a78bfa;
+}
+
+[data-theme="dark"] .sgf-icon-box.cyan {
+  background: rgba(2, 132, 199, 0.18);
+  color: #38bdf8;
+}
+
+[data-theme="dark"] .sgf-icon-box.amber {
+  background: rgba(217, 119, 6, 0.18);
+  color: #fbbf24;
+}
+
+.sgf-action-arrow {
+  color: #cbd5e1;
+  transition: transform var(--transition-fast);
+}
+
+.sgf-action-card:hover .sgf-action-arrow {
+  color: var(--brand-gold-500);
+  transform: translateX(3px);
+}
+
+.sgf-action-card-title {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.sgf-action-card-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+/* Row 3: Bar Charts Grid (2 Columns) */
+.sgf-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 1024px) {
+  .sgf-charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sgf-chart-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-xs);
+  min-height: 380px;
+}
+
+.sgf-chart-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.sgf-chart-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.sgf-chart-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.sgf-chart-helper {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.sgf-chart-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.sgf-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sgf-legend-box {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.sgf-legend-box.billed {
+  background: #2563eb;
+}
+
+.sgf-legend-box.collected {
+  background: #ea580c;
+}
+
+/* Chart Canvas Area */
+.sgf-chart-canvas-wrap {
+  width: 100%;
+  position: relative;
+  margin: 10px 0 14px;
+}
+
+.sgf-svg-chart {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.sgf-grid-line {
+  stroke: var(--border-subtle);
+  stroke-dasharray: 4 4;
+  stroke-width: 1;
+}
+
+.sgf-axis-text {
+  font-size: 10.5px;
+  fill: var(--text-muted);
+  font-family: var(--font-sans);
+}
+
+.sgf-bar-rect {
+  transition: all 180ms ease;
+  cursor: pointer;
+}
+
+.sgf-bar-rect:hover {
+  filter: brightness(1.2);
+}
+
+/* Interactive Table Toggle Button */
+.sgf-table-toggle-btn {
+  background: transparent;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+  transition: color var(--transition-fast);
+  width: fit-content;
+}
+
+.sgf-table-toggle-btn:hover {
+  color: var(--brand-gold-500);
+}
+
+/* Chart Dropdown Table */
+.sgf-chart-table-wrap {
+  margin-top: 14px;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 14px;
+  animation: fadeIn 200ms ease;
+  overflow-x: auto;
+}
+
+.sgf-chart-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.sgf-chart-table th {
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-subtle);
+}
+
+.sgf-chart-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.sgf-chart-table tr:hover td {
+  background: var(--bg-hover);
+}

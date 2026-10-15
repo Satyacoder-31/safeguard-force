@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Search, Bell, Sun, Moon, Shield, ChevronDown, 
   Check, LogOut, Smartphone, User, Crown, 
-  Building2, Users, Clock, Sparkles
+  Building2, Users, Clock, Sparkles, PanelLeft 
 } from 'lucide-react';
 import { useERP } from '../../context/ERPContext';
 import { RoleType } from '../../types/erp';
@@ -10,9 +10,10 @@ import { RoleType } from '../../types/erp';
 export const TopNav: React.FC = () => {
   const { 
     theme, toggleTheme, 
-    language, toggleLanguage, t, 
+    language, setLanguage, toggleLanguage, t, 
     activeModule, setActiveModule,
     currentUser, switchRole, logout,
+    isSidebarCollapsed, toggleSidebar,
     setIsSearchOpen, 
     setIsNotificationOpen, 
     sosAlerts, incidents, 
@@ -80,18 +81,30 @@ export const TopNav: React.FC = () => {
 
   return (
     <header className="erp-topbar">
-      {/* Left: Clean Breadcrumb & Title */}
-      <div className="topbar-left">
-        <div className="topbar-title-wrap">
-          <span className="topbar-page-title">{getModuleTitle()}</span>
-          <span className="topbar-system-indicator">
-            <span className="indicator-dot" />
-            <span className="indicator-text">{kpis.activeGuardsCount} Guards Live</span>
-          </span>
-        </div>
+      {/* Left: Sidebar Collapse Button */}
+      <div className="topbar-left" style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <button 
+          type="button"
+          onClick={toggleSidebar}
+          title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '6px',
+            border: '1px solid var(--border-subtle)',
+            background: 'var(--bg-subtle)',
+            color: 'var(--text-secondary)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer'
+          }}
+        >
+          <PanelLeft size={16} />
+        </button>
       </div>
 
-      {/* Right: Clean, Sorted Actions */}
+      {/* Right: Clean, Sorted Actions matching reference screenshot */}
       <div className="topbar-right">
         {/* Minimal Global Search Trigger */}
         <button 
@@ -105,65 +118,6 @@ export const TopNav: React.FC = () => {
           <span className="search-kbd">Ctrl K</span>
         </button>
 
-        <div className="topbar-divider" />
-
-        {/* Clean Role Switcher Dropdown */}
-        <div className="topbar-dropdown-wrap" ref={roleDropdownRef}>
-          <button 
-            className="topbar-role-selector"
-            onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
-            title="Switch demo persona to test views"
-            type="button"
-          >
-            <span className="role-dot" />
-            <span className="role-label">{currentUser.role.replace('_', ' ')}</span>
-            <ChevronDown size={12} className={`role-arrow ${isRoleDropdownOpen ? 'open' : ''}`} />
-          </button>
-
-          {isRoleDropdownOpen && (
-            <div className="clean-dropdown-menu role-menu">
-              <div className="dropdown-label">Select Demo Persona</div>
-              {rolesList.map(({ role, label, icon: RoleIcon }) => {
-                const isSelected = currentUser.role === role;
-                return (
-                  <button
-                    key={role}
-                    type="button"
-                    onClick={() => {
-                      switchRole(role);
-                      setIsRoleDropdownOpen(false);
-                    }}
-                    className={`dropdown-item ${isSelected ? 'active' : ''}`}
-                  >
-                    <RoleIcon size={14} className={isSelected ? 'item-icon gold' : 'item-icon'} />
-                    <span className="item-text">{label}</span>
-                    {isSelected && <Check size={13} className="item-check" />}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Minimal Language Switcher */}
-        <div className="topbar-lang-toggle">
-          <button 
-            type="button"
-            className={`lang-option ${language === 'en' ? 'active' : ''}`}
-            onClick={() => toggleLanguage()}
-          >
-            EN
-          </button>
-          <span className="lang-sep">/</span>
-          <button 
-            type="button"
-            className={`lang-option ${language === 'hi' ? 'active' : ''}`}
-            onClick={() => toggleLanguage()}
-          >
-            हिन्दी
-          </button>
-        </div>
-
         {/* Theme Toggle */}
         <button 
           type="button"
@@ -174,29 +128,117 @@ export const TopNav: React.FC = () => {
           {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
         </button>
 
-        {/* Notification Bell */}
+        {/* Notification Bell with red counter badge 6 */}
         <button 
           type="button"
-          className={`topbar-icon-btn ${criticalCount > 0 ? 'has-alerts' : ''}`}
+          className="topbar-icon-btn"
           onClick={() => setIsNotificationOpen(true)}
           title="Notifications"
+          style={{ position: 'relative' }}
         >
-          <Bell size={15} />
-          {criticalCount > 0 && <span className="notification-dot" />}
+          <Bell size={16} />
+          <span style={{
+            position: 'absolute',
+            top: '-4px',
+            right: '-4px',
+            background: '#ef4444',
+            color: '#ffffff',
+            fontSize: '10px',
+            fontWeight: 800,
+            borderRadius: '50%',
+            width: '16px',
+            height: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 2px 4px rgba(239, 68, 68, 0.4)'
+          }}>
+            6
+          </span>
         </button>
 
-        {/* User Profile Menu */}
+        {/* Minimal Language Switcher Pill */}
+        <div style={{
+          display: 'inline-flex',
+          background: 'var(--bg-subtle)',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: '6px',
+          padding: '2px',
+          gap: '2px'
+        }}>
+          <button 
+            type="button"
+            onClick={() => setLanguage('en')}
+            style={{
+              padding: '3px 8px',
+              fontSize: '11px',
+              fontWeight: 700,
+              borderRadius: '4px',
+              border: 'none',
+              cursor: 'pointer',
+              background: language === 'en' ? '#0f172a' : 'transparent',
+              color: language === 'en' ? '#ffffff' : 'var(--text-muted)'
+            }}
+          >
+            EN
+          </button>
+          <button 
+            type="button"
+            onClick={() => setLanguage('hi')}
+            style={{
+              padding: '3px 8px',
+              fontSize: '11px',
+              fontWeight: 700,
+              borderRadius: '4px',
+              border: 'none',
+              cursor: 'pointer',
+              background: language === 'hi' ? '#0f172a' : 'transparent',
+              color: language === 'hi' ? '#ffffff' : 'var(--text-muted)'
+            }}
+          >
+            हिंदी
+          </button>
+        </div>
+
+        {/* User Profile Pill matching screenshot */}
         <div className="topbar-dropdown-wrap" ref={profileDropdownRef}>
           <div 
             className="topbar-user-trigger"
             onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
             title={`Account: ${currentUser.name}`}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '9px',
+              cursor: 'pointer',
+              padding: '4px 8px',
+              borderRadius: '8px'
+            }}
           >
-            <div className="user-avatar">
-              {currentUser.name ? currentUser.name.charAt(0) : 'U'}
+            <div style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              background: '#0b132b',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '11px',
+              fontWeight: 800,
+              flexShrink: 0
+            }}>
+              SA
             </div>
-            <span className="user-name">{currentUser.name.split(' ')[0]}</span>
-            <ChevronDown size={11} className={`user-arrow ${isProfileDropdownOpen ? 'open' : ''}`} />
+            <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left', lineHeight: 1.2 }}>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                SGF Administrator
+              </span>
+              <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>
+                Super Admin
+              </span>
+            </div>
+            <ChevronDown size={13} style={{ color: 'var(--text-muted)', marginLeft: '2px' }} />
           </div>
 
           {isProfileDropdownOpen && (

@@ -4,7 +4,7 @@ import {
   CalendarClock, Clock, Navigation, ShieldAlert, AlertOctagon, 
   UserPlus, CheckSquare, Wallet, Receipt, Landmark, Target, 
   ExternalLink, BarChart3, Settings, HelpCircle, ChevronLeft, 
-  ChevronRight, Smartphone, LogOut
+  ChevronRight, Smartphone, LogOut, Bell, ShieldCheck
 } from 'lucide-react';
 import { useERP, NavigationModule } from '../../context/ERPContext';
 import { ShieldLogo } from '../common/ShieldLogo';
@@ -16,6 +16,7 @@ interface NavItem {
   icon: React.ElementType;
   badge?: string;
   badgeColor?: 'danger' | 'warning' | 'neutral';
+  action?: () => void;
 }
 
 interface NavSection {
@@ -27,6 +28,7 @@ export const Sidebar: React.FC = () => {
   const { 
     activeModule, setActiveModule, 
     isSidebarCollapsed, toggleSidebar, 
+    setIsNotificationOpen,
     t, 
     sosAlerts, incidents, shifts, 
     currentUser, logout 
@@ -38,13 +40,43 @@ export const Sidebar: React.FC = () => {
 
   const sections: NavSection[] = [
     {
-      heading: 'Command',
+      heading: 'GENERAL',
       items: [
-        { id: 'dashboard', labelKey: 'dashboard', defaultLabel: 'Executive Dashboard', icon: LayoutDashboard },
+        { id: 'dashboard', labelKey: 'dashboard', defaultLabel: 'Dashboard', icon: LayoutDashboard },
+        { id: 'helpCenter', labelKey: 'howToUse', defaultLabel: 'How to use', icon: HelpCircle },
+        { id: 'reports', labelKey: 'reports', defaultLabel: 'Reports', icon: BarChart3 },
+        { 
+          id: 'dashboard', 
+          labelKey: 'notifications', 
+          defaultLabel: 'Notifications', 
+          icon: Bell,
+          action: () => setIsNotificationOpen(true),
+          badge: '6',
+          badgeColor: 'danger'
+        }
+      ]
+    },
+    {
+      heading: 'OPERATIONS',
+      items: [
+        { id: 'guards', labelKey: 'guards', defaultLabel: 'Guards Master', icon: Users },
+        { id: 'clients', labelKey: 'clients', defaultLabel: 'Clients & Sites', icon: Building2 },
+        { 
+          id: 'deployments', 
+          labelKey: 'deployments', 
+          defaultLabel: 'Deployments & Rosters', 
+          icon: CalendarClock,
+          badge: vacancies > 0 ? `${vacancies} vacant` : undefined,
+          badgeColor: 'warning'
+        },
+        { id: 'attendance', labelKey: 'attendance', defaultLabel: 'GPS Live Attendance', icon: Clock },
+        { id: 'patrol', labelKey: 'patrol', defaultLabel: 'Patrol & Checkpoints', icon: Navigation },
+        { id: 'recruitment', labelKey: 'recruitment', defaultLabel: 'Recruitment Funnel', icon: UserPlus },
+        { id: 'hrCompliance', labelKey: 'hrCompliance', defaultLabel: 'Leave & Compliance', icon: CheckSquare },
         { 
           id: 'sos', 
           labelKey: 'sos', 
-          defaultLabel: 'Emergency SOS Console', 
+          defaultLabel: 'Emergency SOS', 
           icon: AlertOctagon,
           badge: activeSOS > 0 ? 'ALERT' : undefined,
           badgeColor: 'danger'
@@ -60,32 +92,7 @@ export const Sidebar: React.FC = () => {
       ]
     },
     {
-      heading: 'Operations',
-      items: [
-        { id: 'guards', labelKey: 'guards', defaultLabel: 'Guards Master Directory', icon: Users },
-        { id: 'clients', labelKey: 'clients', defaultLabel: 'Clients & Sites', icon: Building2 },
-        { 
-          id: 'deployments', 
-          labelKey: 'deployments', 
-          defaultLabel: 'Deployments & Rosters', 
-          icon: CalendarClock,
-          badge: vacancies > 0 ? `${vacancies} vacant` : undefined,
-          badgeColor: 'warning'
-        },
-        { id: 'attendance', labelKey: 'attendance', defaultLabel: 'GPS Live Attendance', icon: Clock },
-        { id: 'patrol', labelKey: 'patrol', defaultLabel: 'Patrol & Checkpoints', icon: Navigation }
-      ]
-    },
-    {
-      heading: 'Workforce & HR',
-      items: [
-        { id: 'recruitment', labelKey: 'recruitment', defaultLabel: 'Recruitment Funnel', icon: UserPlus },
-        { id: 'hrCompliance', labelKey: 'hrCompliance', defaultLabel: 'Leave & PSARA Compliance', icon: CheckSquare },
-        { id: 'fieldMobile', labelKey: 'fieldMobile', defaultLabel: 'Mobile Duty Experience', icon: Smartphone }
-      ]
-    },
-    {
-      heading: 'Commercials & Admin',
+      heading: 'COMMERCIALS',
       items: [
         { id: 'contracts', labelKey: 'contracts', defaultLabel: 'Contracts & Rates', icon: FileSpreadsheet },
         { id: 'payroll', labelKey: 'payroll', defaultLabel: 'Payroll & Salaries', icon: Wallet },
@@ -93,9 +100,20 @@ export const Sidebar: React.FC = () => {
         { id: 'collections', labelKey: 'collections', defaultLabel: 'Collections & Ageing', icon: Landmark },
         { id: 'crm', labelKey: 'crm', defaultLabel: 'Sales & CRM Pipeline', icon: Target },
         { id: 'clientPortal', labelKey: 'clientPortal', defaultLabel: 'Client Portal (DLF)', icon: ExternalLink },
-        { id: 'reports', labelKey: 'reports', defaultLabel: 'Reports & Analytics', icon: BarChart3 },
-        { id: 'admin', labelKey: 'admin', defaultLabel: 'System Settings', icon: Settings },
-        { id: 'helpCenter', labelKey: 'helpCenter', defaultLabel: 'Help & SOPs', icon: HelpCircle }
+        { id: 'fieldMobile', labelKey: 'fieldMobile', defaultLabel: 'Guard Mobile App', icon: Smartphone }
+      ]
+    },
+    {
+      heading: 'SETUP',
+      items: [
+        { id: 'admin', labelKey: 'branches', defaultLabel: 'Branches', icon: Building2 },
+        { id: 'admin', labelKey: 'users', defaultLabel: 'Users', icon: Users },
+        { id: 'admin', labelKey: 'roles', defaultLabel: 'Roles & permissions', icon: ShieldCheck },
+        { id: 'admin', labelKey: 'masters', defaultLabel: 'Masters', icon: CheckSquare },
+        { id: 'admin', labelKey: 'customFields', defaultLabel: 'Custom fields', icon: Settings },
+        { id: 'admin', labelKey: 'settings', defaultLabel: 'Settings', icon: Settings },
+        { id: 'admin', labelKey: 'auditLog', defaultLabel: 'Audit log', icon: Clock },
+        { id: 'admin', labelKey: 'apiWebhooks', defaultLabel: 'API keys & webhooks', icon: FileSpreadsheet }
       ]
     }
   ];
@@ -108,12 +126,17 @@ export const Sidebar: React.FC = () => {
           className="brand-identity"
           onClick={() => setActiveModule('dashboard')}
           title="Safe Guard Force ERP"
+          style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}
         >
           <ShieldLogo size={28} />
           {!isSidebarCollapsed && (
-            <div className="brand-titles">
-              <span className="brand-main">SAFE GUARD <span className="gold">FORCE</span></span>
-              <span className="brand-tag">ERP SYSTEM</span>
+            <div className="brand-titles" style={{ display: 'flex', flexDirection: 'column' }}>
+              <span className="brand-main" style={{ fontSize: '14px', fontWeight: 800, color: '#ffffff' }}>
+                Safe Guard Force
+              </span>
+              <span className="brand-tag" style={{ color: 'var(--brand-gold-400)', letterSpacing: '0.14em', fontSize: '10px', fontWeight: 800 }}>
+                ERP
+              </span>
             </div>
           )}
         </div>
@@ -137,16 +160,22 @@ export const Sidebar: React.FC = () => {
             )}
 
             <div className="section-items">
-              {sec.items.map(item => {
+              {sec.items.map((item, itemIdx) => {
                 const Icon = item.icon;
-                const isActive = activeModule === item.id;
+                const isActive = activeModule === item.id && !item.action;
                 const label = t(item.labelKey) || item.defaultLabel;
 
                 return (
                   <button
-                    key={item.id}
+                    key={`${item.id}-${itemIdx}`}
                     className={`nav-row-btn ${isActive ? 'active' : ''}`}
-                    onClick={() => setActiveModule(item.id)}
+                    onClick={() => {
+                      if (item.action) {
+                        item.action();
+                      } else {
+                        setActiveModule(item.id);
+                      }
+                    }}
                     title={isSidebarCollapsed ? label : undefined}
                     type="button"
                   >
@@ -166,6 +195,22 @@ export const Sidebar: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* Sidebar Footer matching reference screenshot */}
+      {!isSidebarCollapsed && (
+        <div style={{
+          padding: '12px 16px',
+          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+          background: '#070d1e'
+        }}>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8' }}>
+            Safe Guard Force ERP
+          </div>
+          <div style={{ fontSize: '10px', color: '#64748b', marginTop: '2px' }}>
+            Since 1990 • Security & Facility Management
+          </div>
+        </div>
+      )}
 
       {/* Sidebar Footer User Card */}
       <div className="sidebar-bottom-user">
