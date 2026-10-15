@@ -119,9 +119,11 @@ interface ERPContextType {
   acknowledgeSOS: (id: string, responderName: string) => void;
   resolveSOS: (id: string, notes: string) => void;
 
+  addCandidate: (candidate: Partial<RecruitmentCandidate>) => void;
   updateCandidateStage: (candidateId: string, stage: RecruitmentCandidate['stage']) => void;
   convertCandidateToGuard: (candidateId: string) => void;
 
+  applyLeave: (leave: Partial<LeaveRequest>) => void;
   approveLeave: (id: string) => void;
   rejectLeave: (id: string) => void;
 
@@ -132,6 +134,7 @@ interface ERPContextType {
   approveInvoice: (id: string) => void;
   recordPaymentReceipt: (receipt: Partial<PaymentReceipt>) => void;
 
+  addCRMLead: (lead: Partial<CRMLead>) => void;
   updateLeadStage: (id: string, stage: CRMLead['stage']) => void;
   convertLeadToClient: (leadId: string) => void;
 
@@ -745,6 +748,28 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     addToast('success', 'SOS Cleared', 'Emergency resolved and closed in operational log.');
   };
 
+  const addCandidate = (candData: Partial<RecruitmentCandidate>) => {
+    const id = 'cand-' + Date.now();
+    const newCandidate: RecruitmentCandidate = {
+      id,
+      candidateNumber: `CAN-2026-${100 + candidates.length + 1}`,
+      fullName: candData.fullName || 'New Candidate',
+      phone: candData.phone || '+91 98000 00000',
+      email: candData.email || 'candidate@gmail.com',
+      appliedCategory: candData.appliedCategory || 'Unarmed Guard',
+      source: candData.source || 'Direct Walk-in',
+      experienceYears: candData.experienceYears || 2,
+      expectedSalary: candData.expectedSalary || 16000,
+      stage: 'New Candidate',
+      policeVerificationStatus: candData.policeVerificationStatus || 'In Process',
+      interviewDate: new Date(Date.now() + 86400000 * 2).toISOString().substring(0, 10),
+      notes: candData.notes || 'Candidate profile registered into ERP funnel.'
+    };
+    setCandidates(prev => [newCandidate, ...prev]);
+    logAudit('CREATE', 'Recruitment', `Added candidate ${newCandidate.fullName}`);
+    addToast('success', 'Candidate Added', `${newCandidate.fullName} registered in recruitment funnel.`);
+  };
+
   const updateCandidateStage = (candidateId: string, stage: RecruitmentCandidate['stage']) => {
     setCandidates(prev => prev.map(c => c.id === candidateId ? { ...c, stage } : c));
     logAudit('UPDATE', 'Recruitment', `Candidate ${candidateId} advanced to stage ${stage}`);
@@ -768,6 +793,25 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCandidates(prev => prev.map(c => c.id === candidateId ? { ...c, stage: 'Joined' } : c));
     logAudit('CREATE', 'Recruitment', `Converted candidate ${candidate.fullName} to permanent guard without duplicate entry`);
     addToast('success', 'Employee Onboarded', `${candidate.fullName} converted to official Guard master record.`);
+  };
+
+  const applyLeave = (leaveData: Partial<LeaveRequest>) => {
+    const id = 'lv-' + Date.now();
+    const guard = guards.find(g => g.id === leaveData.guardId) || guards[0];
+    const newLeave: LeaveRequest = {
+      id,
+      guardId: guard?.id || 'gd-1',
+      guardName: guard?.name || 'Guard Personnel',
+      leaveType: (leaveData.leaveType as LeaveRequest['leaveType']) || 'Casual Leave',
+      startDate: leaveData.startDate || new Date().toISOString().substring(0, 10),
+      endDate: leaveData.endDate || new Date(Date.now() + 86400000 * 3).toISOString().substring(0, 10),
+      daysCount: leaveData.daysCount || 3,
+      reason: leaveData.reason || 'Personal / Family requirement',
+      status: 'Pending'
+    };
+    setLeaves(prev => [newLeave, ...prev]);
+    logAudit('CREATE', 'Leave', `Leave application submitted for ${guard?.name || 'guard'}`);
+    addToast('success', 'Leave Submitted', `Leave request for ${guard?.name || 'guard'} submitted for supervisor approval.`);
   };
 
   const approveLeave = (id: string) => {
@@ -945,6 +989,28 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     addToast('success', 'Payment Recorded', `Receipt voucher ${newReceipt.receiptNumber} generated.`);
   };
 
+  const addCRMLead = (leadData: Partial<CRMLead>) => {
+    const id = 'lead-' + Date.now();
+    const newLead: CRMLead = {
+      id,
+      companyName: leadData.companyName || 'New Enterprise Client',
+      contactPerson: leadData.contactPerson || 'Operations Head',
+      email: leadData.email || 'contact@client.com',
+      phone: leadData.phone || '+91 98000 00000',
+      industry: leadData.industry || 'Corporate Office',
+      requiredGuards: leadData.requiredGuards || 12,
+      estimatedMonthlyValue: leadData.estimatedMonthlyValue || 150000,
+      stage: leadData.stage || 'Lead',
+      assignedTo: leadData.assignedTo || currentUser.name,
+      expectedClosingDate: leadData.expectedClosingDate || new Date(Date.now() + 30 * 86400000).toISOString().substring(0, 10),
+      probabilityPercent: leadData.probabilityPercent || 60,
+      notes: leadData.notes || 'Prospect lead created in CRM.'
+    };
+    setCrmLeads(prev => [newLead, ...prev]);
+    logAudit('CREATE', 'CRM', `Added new CRM lead ${newLead.companyName}`);
+    addToast('success', 'Lead Created', `${newLead.companyName} added to sales pipeline.`);
+  };
+
   const updateLeadStage = (id: string, stage: CRMLead['stage']) => {
     setCrmLeads(prev => prev.map(l => l.id === id ? { ...l, stage } : l));
     logAudit('UPDATE', 'CRM', `Updated lead ${id} stage to ${stage}`);
@@ -1081,8 +1147,10 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         triggerEmergencySOS,
         acknowledgeSOS,
         resolveSOS,
+        addCandidate,
         updateCandidateStage,
         convertCandidateToGuard,
+        applyLeave,
         approveLeave,
         rejectLeave,
         generateCurrentMonthPayroll,
@@ -1090,6 +1158,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         generateInvoiceFromContract,
         approveInvoice,
         recordPaymentReceipt,
+        addCRMLead,
         updateLeadStage,
         convertLeadToClient,
         submitComplaint,

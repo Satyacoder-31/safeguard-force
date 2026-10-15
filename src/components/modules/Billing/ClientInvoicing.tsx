@@ -156,7 +156,7 @@ export const ClientInvoicing: React.FC = () => {
               marginBottom: '20px'
             }}>
               <div>
-                <h2 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--brand-navy-900)' }}>
+                <h2 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)' }}>
                   SAFE GUARD FORCE ENTERPRISE
                 </h2>
                 <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
@@ -275,7 +275,7 @@ export const ClientInvoicing: React.FC = () => {
                   paddingTop: '8px',
                   fontSize: '16px',
                   fontWeight: 900,
-                  color: 'var(--brand-navy-900)'
+                  color: 'var(--text-primary)'
                 }}>
                   <span>TOTAL INVOICE VALUE:</span>
                   <span>₹{selectedInvoice.totalAmount.toLocaleString()}</span>

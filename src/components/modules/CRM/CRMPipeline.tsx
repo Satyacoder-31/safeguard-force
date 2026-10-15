@@ -9,7 +9,7 @@ import { StatusBadge } from '../../common/StatusBadge';
 import { Modal } from '../../common/Modal';
 
 export const CRMPipeline: React.FC = () => {
-  const { crmLeads, updateLeadStage, convertLeadToClient, t, addToast } = useERP();
+  const { crmLeads, addCRMLead, updateLeadStage, convertLeadToClient, t, addToast } = useERP();
 
   const [activeView, setActiveView] = useState<'kanban' | 'table'>('kanban');
   const [isAddLeadModalOpen, setIsAddLeadModalOpen] = useState(false);
@@ -38,12 +38,33 @@ export const CRMPipeline: React.FC = () => {
 
   const handleCreateLead = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.companyName || !formData.contactPerson) {
+    if (!formData.companyName.trim() || !formData.contactPerson.trim()) {
       addToast('warning', 'Validation Error', 'Company name and contact person are required.');
       return;
     }
 
-    addToast('success', 'Lead Created', `${formData.companyName} added to CRM pipeline.`);
+    addCRMLead({
+      companyName: formData.companyName.trim(),
+      contactPerson: formData.contactPerson.trim(),
+      email: formData.email.trim() || 'contact@client.com',
+      phone: formData.phone.trim() || '+91 98000 00000',
+      industry: formData.industry,
+      estimatedMonthlyValue: Number(formData.estimatedMonthlyValue) || 150000,
+      stage: 'Lead',
+      notes: formData.notes
+    });
+
+    setFormData({
+      companyName: '',
+      contactPerson: '',
+      email: '',
+      phone: '',
+      industry: 'Commercial IT Park',
+      requiredGuards: 24,
+      estimatedMonthlyValue: 550000,
+      expectedClosingDate: '2026-11-20',
+      notes: 'Inquiry received via web for round-the-clock commercial security.'
+    });
     setIsAddLeadModalOpen(false);
   };
 

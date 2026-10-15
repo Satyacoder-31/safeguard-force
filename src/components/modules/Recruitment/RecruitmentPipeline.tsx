@@ -10,7 +10,7 @@ import { Modal } from '../../common/Modal';
 
 export const RecruitmentPipeline: React.FC = () => {
   const { 
-    candidates, updateCandidateStage, convertCandidateToGuard, 
+    candidates, addCandidate, updateCandidateStage, convertCandidateToGuard, 
     t, addToast 
   } = useERP();
 
@@ -52,7 +52,27 @@ export const RecruitmentPipeline: React.FC = () => {
       return;
     }
 
-    addToast('success', 'Candidate Added', `${formData.fullName} entered into recruitment pipeline.`);
+    addCandidate({
+      fullName: formData.fullName.trim(),
+      phone: formData.phone.trim(),
+      email: formData.email.trim() || 'candidate@gmail.com',
+      appliedCategory: formData.appliedCategory,
+      source: formData.source,
+      experienceYears: Number(formData.experienceYears) || 0,
+      expectedSalary: Number(formData.expectedSalary) || 16000,
+      policeVerificationStatus: formData.policeVerificationStatus
+    });
+
+    setFormData({
+      fullName: '',
+      phone: '',
+      email: '',
+      appliedCategory: 'Unarmed Guard',
+      source: 'Direct Walk-in',
+      experienceYears: 2,
+      expectedSalary: 17000,
+      policeVerificationStatus: 'In Process'
+    });
     setIsAddModalOpen(false);
   };
 

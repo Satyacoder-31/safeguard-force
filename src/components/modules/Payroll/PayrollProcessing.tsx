@@ -14,11 +14,13 @@ export const PayrollProcessing: React.FC = () => {
     approvePayrollRun, t, addToast 
   } = useERP();
 
-  const [selectedRun, setSelectedRun] = useState<PayrollRun>(payrollRuns[0]);
+  const [selectedRunId, setSelectedRunId] = useState<string>(payrollRuns[0]?.id || '');
+  const selectedRun = payrollRuns.find(r => r.id === selectedRunId) || payrollRuns[0];
   const [viewingPayslip, setViewingPayslip] = useState<PayslipItem | null>(null);
 
   const handleCalculatePayroll = () => {
     generateCurrentMonthPayroll();
+    setSelectedRunId('pay-2026-10');
   };
 
   const handlePrintPayslip = () => {
@@ -113,8 +115,22 @@ export const PayrollProcessing: React.FC = () => {
       {selectedRun && (
         <div className="table-container">
           <div className="table-toolbar">
-            <div style={{ fontSize: '14px', fontWeight: 700 }}>
-              Workforce Payslip Register — {selectedRun.periodMonth}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 700 }}>
+                Workforce Payslip Register:
+              </div>
+              <select
+                className="form-control"
+                style={{ width: 'auto', padding: '4px 10px', fontSize: '13px', fontWeight: 600 }}
+                value={selectedRun?.id}
+                onChange={e => setSelectedRunId(e.target.value)}
+              >
+                {payrollRuns.map(run => (
+                  <option key={run.id} value={run.id}>
+                    {run.periodMonth} ({run.status} — ₹{run.netPayroll.toLocaleString()})
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div style={{ display: 'flex', gap: '8px' }}>
@@ -215,7 +231,7 @@ export const PayrollProcessing: React.FC = () => {
               marginBottom: '16px'
             }}>
               <div>
-                <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--brand-navy-900)' }}>
+                <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)' }}>
                   SAFE GUARD FORCE ENTERPRISE
                 </h2>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>

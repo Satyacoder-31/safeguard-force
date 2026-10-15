@@ -1,14 +1,41 @@
 import React, { useState } from 'react';
 import { 
   CheckSquare, Calendar, Shield, Package, 
-  CheckCircle, AlertTriangle, FileCheck, Award 
+  CheckCircle, AlertTriangle, FileCheck, Award, Plus 
 } from 'lucide-react';
 import { useERP } from '../../../context/ERPContext';
 import { StatusBadge } from '../../common/StatusBadge';
+import { Modal } from '../../common/Modal';
+import { LeaveRequest } from '../../../types/erp';
 
 export const HRCompliance: React.FC = () => {
-  const { leaves, approveLeave, rejectLeave, uniforms, t, addToast } = useERP();
+  const { guards, leaves, applyLeave, approveLeave, rejectLeave, uniforms, t, addToast } = useERP();
   const [activeTab, setActiveTab] = useState<'leaves' | 'uniforms' | 'statutory'>('leaves');
+  const [isApplyLeaveOpen, setIsApplyLeaveOpen] = useState(false);
+
+  const [leaveForm, setLeaveForm] = useState({
+    guardId: guards[0]?.id || '',
+    leaveType: 'Casual Leave' as LeaveRequest['leaveType'],
+    startDate: new Date().toISOString().substring(0, 10),
+    endDate: new Date(Date.now() + 86400000 * 3).toISOString().substring(0, 10),
+    daysCount: 3,
+    reason: 'Family requirement / urgent personal work'
+  });
+
+  const handleApplyLeave = (e: React.FormEvent) => {
+    e.preventDefault();
+    const guard = guards.find(g => g.id === leaveForm.guardId) || guards[0];
+    applyLeave({
+      guardId: guard?.id,
+      guardName: guard?.name,
+      leaveType: leaveForm.leaveType,
+      startDate: leaveForm.startDate,
+      endDate: leaveForm.endDate,
+      daysCount: Number(leaveForm.daysCount) || 1,
+      reason: leaveForm.reason
+    });
+    setIsApplyLeaveOpen(false);
+  };
 
   const statutoryChecklist = [
     { id: 'st-1', rule: 'PSARA License (Private Security Agencies Regulation Act)', authority: 'State Home Dept. (Haryana & Delhi)', status: 'Compliant & Valid until 2028', badge: 'Verified' },
@@ -31,6 +58,13 @@ export const HRCompliance: React.FC = () => {
           <p>
             Workforce leave administration, uniform inventory provisioning, and India statutory labor compliance audits.
           </p>
+        </div>
+
+        <div className="page-actions-group">
+          <button className="btn btn-gold" onClick={() => setIsApplyLeaveOpen(true)}>
+            <Plus size={16} />
+            <span>Apply Leave</span>
+          </button>
         </div>
       </div>
 
@@ -203,6 +237,101 @@ export const HRCompliance: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Apply Leave Modal */}
+      <Modal 
+        isOpen={isApplyLeaveOpen} 
+        onClose={() => setIsApplyLeaveOpen(false)} 
+        title="Submit Guard Leave Application"
+      >
+        <form onSubmit={handleApplyLeave} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="form-group">
+            <label>Select Guard / Employee *</label>
+            <select 
+              className="form-control" 
+              value={leaveForm.guardId} 
+              onChange={e => setLeaveForm({ ...leaveForm, guardId: e.target.value })}
+              required
+            >
+              {guards.map(g => (
+                <option key={g.id} value={g.id}>
+                  {g.name} ({g.category} - {g.guardIdNumber})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label>Leave Category *</label>
+            <select 
+              className="form-control"
+              value={leaveForm.leaveType}
+              onChange={e => setLeaveForm({ ...leaveForm, leaveType: e.target.value as LeaveRequest['leaveType'] })}
+            >
+              <option value="Casual Leave">Casual Leave (CL)</option>
+              <option value="Sick Leave">Sick Leave / Medical (SL)</option>
+              <option value="Earned Leave">Earned Leave (EL / PL)</option>
+              <option value="Bereavement Leave">Bereavement Leave</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+            <div className="form-group">
+              <label>Start Date</label>
+              <input 
+                type="date" 
+                className="form-control" 
+                value={leaveForm.startDate} 
+                onChange={e => setLeaveForm({ ...leaveForm, startDate: e.target.value })}
+                required 
+              />
+            </div>
+            <div className="form-group">
+              <label>End Date</label>
+              <input 
+                type="date" 
+                className="form-control" 
+                value={leaveForm.endDate} 
+                onChange={e => setLeaveForm({ ...leaveForm, endDate: e.target.value })}
+                required 
+              />
+            </div>
+            <div className="form-group">
+              <label>Total Days</label>
+              <input 
+                type="number" 
+                className="form-control" 
+                min="1" 
+                max="30"
+                value={leaveForm.daysCount} 
+                onChange={e => setLeaveForm({ ...leaveForm, daysCount: parseInt(e.target.value) || 1 })}
+                required 
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Reason / Notes *</label>
+            <textarea 
+              className="form-control" 
+              rows={3}
+              value={leaveForm.reason}
+              onChange={e => setLeaveForm({ ...leaveForm, reason: e.target.value })}
+              placeholder="State reason for absence and emergency contact details..."
+              required
+            />
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+            <button type="button" className="btn btn-secondary" onClick={() => setIsApplyLeaveOpen(false)}>
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-gold">
+              Submit Leave Request
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };
