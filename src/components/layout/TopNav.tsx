@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Search, Bell, Sun, Moon, Globe, Shield, 
-  ChevronDown, CheckCircle, AlertTriangle 
+  ChevronDown, CheckCircle, AlertTriangle, AlertOctagon, 
+  LogOut, Crown, Building2, Users, Smartphone, Clock, 
+  Radio, Sparkles, Check, User, ExternalLink
 } from 'lucide-react';
 import { useERP } from '../../context/ERPContext';
 import { RoleType } from '../../types/erp';
@@ -10,8 +12,8 @@ export const TopNav: React.FC = () => {
   const { 
     theme, toggleTheme, 
     language, toggleLanguage, t, 
-    activeModule, 
-    currentUser, switchRole, 
+    activeModule, setActiveModule,
+    currentUser, switchRole, logout,
     setIsSearchOpen, 
     setIsNotificationOpen, 
     sosAlerts, incidents, 
@@ -19,21 +21,39 @@ export const TopNav: React.FC = () => {
   } = useERP();
 
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+
+  const roleDropdownRef = useRef<HTMLDivElement>(null);
+  const profileDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (roleDropdownRef.current && !roleDropdownRef.current.contains(event.target as Node)) {
+        setIsRoleDropdownOpen(false);
+      }
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
+        setIsProfileDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Unread alerts count (SOS + critical incidents)
   const criticalCount = sosAlerts.filter(s => s.status === 'Triggered' || s.status === 'Acknowledged').length +
                         incidents.filter(i => i.severity === 'Critical' && i.status !== 'Resolved').length;
 
-  const rolesList: { role: RoleType; label: string }[] = [
-    { role: 'SUPER_ADMIN', label: 'Super Admin (Owner)' },
-    { role: 'MANAGEMENT', label: 'Executive Management' },
-    { role: 'OPERATIONS_MANAGER', label: 'Operations Manager' },
-    { role: 'SITE_SUPERVISOR', label: 'Site Supervisor' },
-    { role: 'HR_RECRUITMENT', label: 'HR & Recruitment' },
-    { role: 'PAYROLL_ACCOUNTS', label: 'Payroll & Accounts' },
-    { role: 'SALES_CRM', label: 'Sales & CRM Lead' },
-    { role: 'CLIENT_USER', label: 'Client Authorized User' },
-    { role: 'GUARD_FIELD', label: 'Guard (Field Duty)' }
+  const rolesList: { role: RoleType; label: string; group: string; icon: React.ElementType }[] = [
+    { role: 'SUPER_ADMIN', label: 'Super Admin (MD / Owner)', group: 'Enterprise Leadership', icon: Crown },
+    { role: 'MANAGEMENT', label: 'Executive Board', group: 'Enterprise Leadership', icon: Crown },
+    { role: 'OPERATIONS_MANAGER', label: 'Operations Head', group: 'Command & Field', icon: Shield },
+    { role: 'SITE_SUPERVISOR', label: 'Site Supervisor', group: 'Command & Field', icon: Users },
+    { role: 'GUARD_FIELD', label: 'Guard (Field Duty)', group: 'Command & Field', icon: Smartphone },
+    { role: 'HR_RECRUITMENT', label: 'HR & Compliance', group: 'Back Office & Finance', icon: Users },
+    { role: 'PAYROLL_ACCOUNTS', label: 'Payroll & Accounts', group: 'Back Office & Finance', icon: Clock },
+    { role: 'SALES_CRM', label: 'Sales & Bidding Head', group: 'Back Office & Finance', icon: Sparkles },
+    { role: 'CLIENT_USER', label: 'Client Admin (DLF)', group: 'External Portal', icon: Building2 }
   ];
 
   const getModuleTitle = () => {
@@ -59,129 +79,126 @@ export const TopNav: React.FC = () => {
       case 'fieldMobile': return t('fieldMobile');
       case 'admin': return t('admin');
       case 'helpCenter': return t('helpCenter');
-      default: return 'Safe Guard Force';
+      default: return 'Executive Dashboard';
     }
+  };
+
+  const getCategoryTitle = () => {
+    if (['dashboard', 'sos', 'incidents'].includes(activeModule)) return 'Command';
+    if (['guards', 'clients', 'sites', 'deployments', 'attendance', 'patrol'].includes(activeModule)) return 'Operations';
+    if (['recruitment', 'hrCompliance', 'fieldMobile'].includes(activeModule)) return 'Workforce';
+    if (['contracts', 'payroll', 'billing', 'collections'].includes(activeModule)) return 'Finance';
+    return 'Portal';
   };
 
   return (
     <header className="erp-topbar">
-      {/* Left: Breadcrumbs & Contextual Title */}
+      {/* Left: Breadcrumbs & Live Operation Indicators */}
       <div className="topbar-left">
         <div className="page-breadcrumb">
-          <span>Safe Guard Force</span>
-          <span>/</span>
-          <span className="current">{getModuleTitle()}</span>
+          <div className="breadcrumb-brand-icon">
+            <Shield size={14} className="gold-text" />
+          </div>
+          <span className="breadcrumb-category">{getCategoryTitle()}</span>
+          <span className="breadcrumb-separator">/</span>
+          <span className="breadcrumb-current">{getModuleTitle()}</span>
         </div>
 
-        {/* Live operational indicator badge */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          padding: '4px 10px',
-          borderRadius: 'var(--radius-full)',
-          background: 'var(--status-success-bg)',
-          color: 'var(--status-success-fg)',
-          fontSize: '11.5px',
-          fontWeight: 600
-        }}>
-          <CheckCircle size={13} />
-          <span>{kpis.activeGuardsCount} Guards Live</span>
+        {/* Live operational badge */}
+        <div className="topbar-live-status-pill">
+          <span className="live-status-dot" />
+          <span className="live-status-text">
+            <strong>{kpis.activeGuardsCount}</strong> Guards Live
+          </span>
+          <span className="live-status-divider">•</span>
+          <span className="live-shift-text">Day Shift</span>
         </div>
       </div>
 
-      {/* Right: Search, Role Switcher, Language, Theme, Notifications, Profile */}
-      <div className="topbar-right">
-        {/* Global Search Button */}
+      {/* Center: Sleek Global Search Trigger */}
+      <div className="topbar-center">
         <button 
           className="global-search-trigger"
           onClick={() => setIsSearchOpen(true)}
-          title="Search anything (Cmd+K)"
+          title="Search anything across ERP (Cmd+K / Ctrl+K)"
+          type="button"
         >
-          <Search size={15} />
-          <span>{t('searchPlaceholder')}</span>
+          <Search size={14} className="search-icon" />
+          <span className="search-placeholder-text">{t('searchPlaceholder')}</span>
           <span className="kbd-shortcut">Ctrl K</span>
         </button>
+      </div>
 
-        {/* Role Switcher Pill */}
-        <div style={{ position: 'relative' }}>
+      {/* Right: Actions, Role Switcher, Controls & User Profile */}
+      <div className="topbar-right">
+        {/* Quick SOS Emergency Jump Button */}
+        <button
+          className={`topbar-sos-btn ${criticalCount > 0 ? 'active-alert' : ''}`}
+          onClick={() => setActiveModule('sos')}
+          title="Emergency SOS Console"
+          type="button"
+        >
+          <AlertOctagon size={15} />
+          <span>{criticalCount > 0 ? `${criticalCount} SOS` : 'SOS Console'}</span>
+        </button>
+
+        {/* Role Switcher Pill & Dropdown */}
+        <div className="topbar-role-dropdown-container" ref={roleDropdownRef}>
           <button 
             className="role-badge-pill"
             onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
             title="Switch User Role to test permissions & views"
+            type="button"
           >
-            <Shield size={14} />
-            <span>{currentUser.role.replace('_', ' ')}</span>
-            <ChevronDown size={13} />
+            <Shield size={13} className="gold-text" />
+            <span className="role-text-label">{currentUser.role.replace('_', ' ')}</span>
+            <ChevronDown size={12} className={`role-chevron ${isRoleDropdownOpen ? 'rotated' : ''}`} />
           </button>
 
           {isRoleDropdownOpen && (
-            <div style={{
-              position: 'absolute',
-              top: '115%',
-              right: 0,
-              width: '240px',
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-lg)',
-              boxShadow: 'var(--shadow-xl)',
-              padding: '6px',
-              zIndex: 100,
-              animation: 'scaleIn 150ms ease-out'
-            }}>
-              <div style={{
-                padding: '8px 12px 6px',
-                fontSize: '11px',
-                fontWeight: 700,
-                color: 'var(--text-muted)',
-                textTransform: 'uppercase',
-                borderBottom: '1px solid var(--border-subtle)'
-              }}>
-                {t('switchRole')}
+            <div className="topbar-role-menu">
+              <div className="role-menu-header">
+                <span className="role-menu-title">Switch Enterprise Persona</span>
+                <span className="role-menu-subtitle">9 Roles Configured</span>
               </div>
-              <div style={{ maxHeight: '280px', overflowY: 'auto', padding: '4px 0' }}>
-                {rolesList.map(({ role, label }) => (
-                  <button
-                    key={role}
-                    onClick={() => {
-                      switchRole(role);
-                      setIsRoleDropdownOpen(false);
-                    }}
-                    style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      padding: '8px 12px',
-                      borderRadius: 'var(--radius-md)',
-                      fontSize: '12.5px',
-                      border: 'none',
-                      background: currentUser.role === role ? 'var(--accent-gold-bg)' : 'transparent',
-                      color: currentUser.role === role ? 'var(--accent-gold)' : 'var(--text-primary)',
-                      fontWeight: currentUser.role === role ? 700 : 500,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between'
-                    }}
-                  >
-                    <span>{label}</span>
-                    {currentUser.role === role && <CheckCircle size={13} color="var(--accent-gold)" />}
-                  </button>
-                ))}
+              <div className="role-menu-scroll">
+                {rolesList.map(({ role, label, icon: RoleIcon }) => {
+                  const isCurrent = currentUser.role === role;
+                  return (
+                    <button
+                      key={role}
+                      type="button"
+                      onClick={() => {
+                        switchRole(role);
+                        setIsRoleDropdownOpen(false);
+                      }}
+                      className={`role-menu-item ${isCurrent ? 'active' : ''}`}
+                    >
+                      <div className="role-item-left">
+                        <RoleIcon size={14} className={isCurrent ? 'gold-text' : 'muted-text'} />
+                        <span className="role-item-name">{label}</span>
+                      </div>
+                      {isCurrent && <Check size={13} className="gold-text" />}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
         </div>
 
         {/* Language Switcher (EN | हिन्दी) */}
-        <div className="lang-switcher" title="Toggle Language (English / हिंदी)">
+        <div className="topbar-lang-pill" title="Toggle Language (English / हिंदी)">
           <button 
-            className={`lang-btn ${language === 'en' ? 'active' : ''}`}
+            type="button"
+            className={`topbar-lang-item ${language === 'en' ? 'active' : ''}`}
             onClick={() => toggleLanguage()}
           >
             EN
           </button>
           <button 
-            className={`lang-btn ${language === 'hi' ? 'active' : ''}`}
+            type="button"
+            className={`topbar-lang-item ${language === 'hi' ? 'active' : ''}`}
             onClick={() => toggleLanguage()}
           >
             हिन्दी
@@ -190,35 +207,111 @@ export const TopNav: React.FC = () => {
 
         {/* Theme Toggle (Light / Dark) */}
         <button 
-          className="icon-btn"
+          type="button"
+          className="topbar-icon-action"
           onClick={toggleTheme}
           title={theme === 'dark' ? t('lightMode') : t('darkMode')}
         >
-          {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
         </button>
 
         {/* Notifications Button */}
         <button 
-          className={`icon-btn ${criticalCount > 0 ? 'has-badge' : ''}`}
+          type="button"
+          className={`topbar-icon-action ${criticalCount > 0 ? 'has-badge' : ''}`}
           onClick={() => setIsNotificationOpen(true)}
           title={t('notifications')}
         >
-          <Bell size={17} />
+          <Bell size={16} />
+          {criticalCount > 0 && (
+            <span className="notification-counter-badge">{criticalCount}</span>
+          )}
         </button>
 
-        {/* User Profile Pill */}
-        <div className="user-profile-btn" title={`Signed in as ${currentUser.name}`}>
-          <div className="user-avatar-circle">
-            {currentUser.name.charAt(0)}
+        {/* User Profile Pill & Dropdown */}
+        <div className="topbar-profile-container" ref={profileDropdownRef}>
+          <div 
+            className="topbar-user-pill" 
+            onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+            title={`Signed in as ${currentUser.name}`}
+          >
+            <div className="topbar-avatar-circle">
+              {currentUser.name ? currentUser.name.charAt(0) : 'A'}
+              <span className="avatar-live-indicator" />
+            </div>
+            <div className="topbar-user-names">
+              <span className="user-firstname">{currentUser.name.split(' ')[0]}</span>
+              <span className="user-shortrole">{currentUser.role.split('_')[0]}</span>
+            </div>
+            <ChevronDown size={12} className={`profile-chevron ${isProfileDropdownOpen ? 'rotated' : ''}`} />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left', paddingRight: '6px' }}>
-            <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.2 }}>
-              {currentUser.name.split(' ')[0]}
-            </span>
-            <span style={{ fontSize: '10.5px', color: 'var(--text-muted)', lineHeight: 1.1 }}>
-              {currentUser.role.toLowerCase().replace('_', ' ')}
-            </span>
-          </div>
+
+          {isProfileDropdownOpen && (
+            <div className="topbar-profile-menu">
+              <div className="profile-menu-header">
+                <div className="profile-menu-avatar">
+                  {currentUser.name ? currentUser.name.charAt(0) : 'A'}
+                </div>
+                <div className="profile-menu-meta">
+                  <span className="profile-menu-name">{currentUser.name}</span>
+                  <span className="profile-menu-email">{currentUser.email}</span>
+                  <span className="profile-menu-role-badge">{currentUser.role.replace('_', ' ')}</span>
+                </div>
+              </div>
+
+              <div className="profile-menu-links">
+                <button 
+                  type="button" 
+                  className="profile-menu-item"
+                  onClick={() => {
+                    setActiveModule('fieldMobile');
+                    setIsProfileDropdownOpen(false);
+                  }}
+                >
+                  <Smartphone size={14} />
+                  <span>Mobile Field Duty View</span>
+                </button>
+
+                <button 
+                  type="button" 
+                  className="profile-menu-item"
+                  onClick={() => {
+                    setActiveModule('admin');
+                    setIsProfileDropdownOpen(false);
+                  }}
+                >
+                  <Shield size={14} />
+                  <span>System Administration & Logs</span>
+                </button>
+
+                <button 
+                  type="button" 
+                  className="profile-menu-item"
+                  onClick={() => {
+                    setActiveModule('clientPortal');
+                    setIsProfileDropdownOpen(false);
+                  }}
+                >
+                  <Building2 size={14} />
+                  <span>Client Self-Service Portal</span>
+                </button>
+              </div>
+
+              <div className="profile-menu-footer">
+                <button
+                  type="button"
+                  className="profile-logout-btn"
+                  onClick={() => {
+                    setIsProfileDropdownOpen(false);
+                    logout();
+                  }}
+                >
+                  <LogOut size={14} />
+                  <span>Sign Out to Login Page</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </header>

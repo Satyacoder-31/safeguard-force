@@ -62,7 +62,10 @@ interface ERPContextType {
   toggleSidebar: () => void;
 
   // Auth & Roles
+  isAuthenticated: boolean;
   currentUser: UserSession;
+  login: (email: string, role?: RoleType, customName?: string) => void;
+  logout: () => void;
   switchRole: (role: RoleType) => void;
 
   // Dialogs & Panels
@@ -216,16 +219,93 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setToasts(prev => prev.filter(t => t.id !== id));
   };
 
-  // User Session & Role
-  const [currentUser, setCurrentUser] = useState<UserSession>({
-    id: 'usr-1',
-    name: 'Brig. Alok Sharma (Retd.)',
-    email: 'operations@safeguardforce.in',
-    phone: '+91 98110 55443',
-    role: 'SUPER_ADMIN',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
-    branchId: 'br-1'
+  // User Session & Authentication
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    // If user has explicitly logged in, persist true; otherwise false to showcase the login page
+    return localStorage.getItem('sgf_auth') === 'true';
   });
+
+  const [currentUser, setCurrentUser] = useState<UserSession>(() => {
+    const savedRole = (localStorage.getItem('sgf_user_role') as RoleType) || 'SUPER_ADMIN';
+    return {
+      id: 'usr-1',
+      name: 'Brig. Alok Sharma (Retd.)',
+      email: 'operations@safeguardforce.in',
+      phone: '+91 98110 55443',
+      role: savedRole,
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
+      branchId: 'br-1'
+    };
+  });
+
+  const login = (email: string, role?: RoleType, customName?: string) => {
+    let resolvedRole: RoleType = role || 'SUPER_ADMIN';
+    let name = customName || 'Brig. Alok Sharma (Retd.)';
+    let clientId: string | undefined = undefined;
+
+    if (!role) {
+      const lower = email.toLowerCase();
+      if (lower.includes('ops') || lower.includes('batra')) {
+        resolvedRole = 'OPERATIONS_MANAGER';
+        name = 'Maj. Sandeep Batra (Retd.)';
+      } else if (lower.includes('hr') || lower.includes('kashyap')) {
+        resolvedRole = 'HR_RECRUITMENT';
+        name = 'Pooja Kashyap (HR Manager)';
+      } else if (lower.includes('account') || lower.includes('finance') || lower.includes('chandra')) {
+        resolvedRole = 'PAYROLL_ACCOUNTS';
+        name = 'Ramesh Chandra (Senior Accounts)';
+      } else if (lower.includes('dlf') || lower.includes('client') || lower.includes('mathur')) {
+        resolvedRole = 'CLIENT_USER';
+        name = 'Col. Rajiv Mathur (DLF CyberCity VP)';
+        clientId = 'cl-1';
+      } else if (lower.includes('guard') || lower.includes('shekhawat')) {
+        resolvedRole = 'GUARD_FIELD';
+        name = 'Vikram Singh Shekhawat';
+      } else if (lower.includes('supervisor') || lower.includes('balwant')) {
+        resolvedRole = 'SITE_SUPERVISOR';
+        name = 'Subedar Balwant Singh';
+      } else if (lower.includes('sales') || lower.includes('verma')) {
+        resolvedRole = 'SALES_CRM';
+        name = 'Vikrant Verma (Sales Head)';
+      } else if (lower.includes('mgmt') || lower.includes('rathore')) {
+        resolvedRole = 'MANAGEMENT';
+        name = 'Lt. Gen. K.S. Rathore (Chairman)';
+      }
+    } else {
+      if (role === 'OPERATIONS_MANAGER') name = 'Maj. Sandeep Batra (Retd.)';
+      else if (role === 'HR_RECRUITMENT') name = 'Pooja Kashyap (HR Manager)';
+      else if (role === 'PAYROLL_ACCOUNTS') name = 'Ramesh Chandra (Senior Accounts)';
+      else if (role === 'CLIENT_USER') { name = 'Col. Rajiv Mathur (DLF CyberCity VP)'; clientId = 'cl-1'; }
+      else if (role === 'GUARD_FIELD') name = 'Vikram Singh Shekhawat';
+      else if (role === 'SITE_SUPERVISOR') name = 'Subedar Balwant Singh';
+      else if (role === 'SALES_CRM') name = 'Vikrant Verma (Sales Head)';
+      else if (role === 'MANAGEMENT') name = 'Lt. Gen. K.S. Rathore (Chairman)';
+      else if (role === 'SUPER_ADMIN') name = 'Brig. Alok Sharma (Retd.)';
+    }
+
+    const newUser: UserSession = {
+      id: 'usr-' + resolvedRole.toLowerCase(),
+      name,
+      email: email || 'admin@safeguardforce.in',
+      phone: '+91 98110 55443',
+      role: resolvedRole,
+      clientId,
+      branchId: 'br-1',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80'
+    };
+
+    setCurrentUser(newUser);
+    setIsAuthenticated(true);
+    localStorage.setItem('sgf_auth', 'true');
+    localStorage.setItem('sgf_user_role', resolvedRole);
+    addToast('success', 'Security Clearance Verified', `Welcome back, ${name}. Connected to Safe Guard Force ERP.`);
+  };
+
+  const logout = () => {
+    setIsAuthenticated(false);
+    localStorage.setItem('sgf_auth', 'false');
+    addToast('info', 'Secure Sign Out', 'You have been logged out of the Safe Guard Force console.');
+  };
 
   const switchRole = (newRole: RoleType) => {
     let name = 'Brig. Alok Sharma (Retd.)';
@@ -265,6 +345,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       clientId,
       branchId: 'br-1'
     });
+    localStorage.setItem('sgf_user_role', newRole);
 
     addToast('info', 'Role Switched', `Active persona is now ${newRole}. Permissions and view adapted.`);
   };
@@ -954,7 +1035,10 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isSidebarCollapsed,
         setIsSidebarCollapsed,
         toggleSidebar,
+        isAuthenticated,
         currentUser,
+        login,
+        logout,
         switchRole,
         isSearchOpen,
         setIsSearchOpen,

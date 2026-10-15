@@ -28,10 +28,21 @@ import { AnalyticsReports } from './components/modules/Reports/AnalyticsReports'
 import { FieldStaffMobile } from './components/modules/FieldMobile/FieldStaffMobile';
 import { AdminCenter } from './components/modules/Admin/AdminCenter';
 import { HelpCenter } from './components/modules/HelpCenter/HelpCenter';
+import { LoginPage } from './components/auth/LoginPage';
 
 const MainLayout: React.FC = () => {
-  const { activeModule } = useERP();
+  const { activeModule, isAuthenticated } = useERP();
   const [isStartupDone, setIsStartupDone] = useState(false);
+
+  // If user is not authenticated, display the attractive login page with credentials
+  if (!isAuthenticated) {
+    return (
+      <>
+        <LoginPage />
+        <ToastContainer />
+      </>
+    );
+  }
 
   // Render appropriate module view
   const renderActiveModule = () => {
