@@ -1,16 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   LayoutDashboard, Users, Building2, MapPin, FileSpreadsheet, 
   CalendarClock, Clock, Navigation, ShieldAlert, AlertOctagon, 
   UserPlus, CheckSquare, Wallet, Receipt, Landmark, Target, 
   ExternalLink, BarChart3, Settings, HelpCircle, ChevronLeft, 
-  ChevronRight, Smartphone, LogOut, Bell, ShieldCheck
+  ChevronRight, ChevronDown, Smartphone, LogOut, Bell, ShieldCheck,
+  FolderLock
 } from 'lucide-react';
-import { useERP, NavigationModule } from '../../context/ERPContext';
+import { useERP, NavigationModule, AdminSubTab } from '../../context/ERPContext';
 import { ShieldLogo } from '../common/ShieldLogo';
 
 interface NavItem {
   id: NavigationModule;
+  subTab?: AdminSubTab;
   labelKey: string;
   defaultLabel: string;
   icon: React.ElementType;
@@ -27,12 +29,22 @@ interface NavSection {
 export const Sidebar: React.FC = () => {
   const { 
     activeModule, setActiveModule, 
+    adminTab, openSetupTab,
     isSidebarCollapsed, toggleSidebar, 
     setIsNotificationOpen,
     t, 
     sosAlerts, incidents, shifts, 
     currentUser, logout 
   } = useERP();
+
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+
+  const toggleSection = (heading: string) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [heading]: !prev[heading]
+    }));
+  };
 
   const activeSOS = sosAlerts.filter(s => s.status === 'Triggered' || s.status === 'Acknowledged').length;
   const openIncidents = incidents.filter(i => i.status !== 'Closed' && i.status !== 'Resolved').length;
@@ -106,14 +118,14 @@ export const Sidebar: React.FC = () => {
     {
       heading: 'SETUP',
       items: [
-        { id: 'admin', labelKey: 'branches', defaultLabel: 'Branches', icon: Building2 },
-        { id: 'admin', labelKey: 'users', defaultLabel: 'Users', icon: Users },
-        { id: 'admin', labelKey: 'roles', defaultLabel: 'Roles & permissions', icon: ShieldCheck },
-        { id: 'admin', labelKey: 'masters', defaultLabel: 'Masters', icon: CheckSquare },
-        { id: 'admin', labelKey: 'customFields', defaultLabel: 'Custom fields', icon: Settings },
-        { id: 'admin', labelKey: 'settings', defaultLabel: 'Settings', icon: Settings },
-        { id: 'admin', labelKey: 'auditLog', defaultLabel: 'Audit log', icon: Clock },
-        { id: 'admin', labelKey: 'apiWebhooks', defaultLabel: 'API keys & webhooks', icon: FileSpreadsheet }
+        { id: 'admin', subTab: 'branches', labelKey: 'branches', defaultLabel: 'Branches & Units', icon: Building2 },
+        { id: 'admin', subTab: 'users', labelKey: 'users', defaultLabel: 'Users & Staff', icon: Users },
+        { id: 'admin', subTab: 'roles', labelKey: 'roles', defaultLabel: 'Roles & Permissions', icon: ShieldCheck },
+        { id: 'admin', subTab: 'masters', labelKey: 'masters', defaultLabel: 'Master Data', icon: CheckSquare },
+        { id: 'admin', subTab: 'customFields', labelKey: 'customFields', defaultLabel: 'Custom Fields', icon: Settings },
+        { id: 'admin', subTab: 'settings', labelKey: 'settings', defaultLabel: 'Company Settings', icon: Settings },
+        { id: 'admin', subTab: 'audit', labelKey: 'auditLog', defaultLabel: 'Audit Trail', icon: Clock },
+        { id: 'admin', subTab: 'api', labelKey: 'apiWebhooks', defaultLabel: 'API & Webhooks', icon: FileSpreadsheet }
       ]
     }
   ];
@@ -153,47 +165,79 @@ export const Sidebar: React.FC = () => {
 
       {/* Navigation Sections */}
       <div className="sidebar-nav-container">
-        {sections.map((sec, idx) => (
-          <div key={idx} className="sidebar-section">
-            {!isSidebarCollapsed && (
-              <div className="section-label">{sec.heading}</div>
-            )}
+        {sections.map((sec, idx) => {
+          const isCollapsed = Boolean(collapsedSections[sec.heading]);
 
-            <div className="section-items">
-              {sec.items.map((item, itemIdx) => {
-                const Icon = item.icon;
-                const isActive = activeModule === item.id && !item.action;
-                const label = t(item.labelKey) || item.defaultLabel;
+          return (
+            <div key={idx} className="sidebar-section">
+              {!isSidebarCollapsed && (
+                <div 
+                  className="section-header-bar"
+                  onClick={() => toggleSection(sec.heading)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                    padding: '6px 8px 4px 8px',
+                    userSelect: 'none'
+                  }}
+                  title={`Click to ${isCollapsed ? 'expand' : 'collapse'} ${sec.heading}`}
+                >
+                  <span className="section-label" style={{ padding: 0 }}>{sec.heading}</span>
+                  <ChevronDown 
+                    size={13} 
+                    style={{ 
+                      color: '#64748b', 
+                      transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s ease'
+                    }} 
+                  />
+                </div>
+              )}
 
-                return (
-                  <button
-                    key={`${item.id}-${itemIdx}`}
-                    className={`nav-row-btn ${isActive ? 'active' : ''}`}
-                    onClick={() => {
-                      if (item.action) {
-                        item.action();
-                      } else {
-                        setActiveModule(item.id);
-                      }
-                    }}
-                    title={isSidebarCollapsed ? label : undefined}
-                    type="button"
-                  >
-                    <Icon className="nav-icon" size={17} />
-                    {!isSidebarCollapsed && (
-                      <span className="nav-text">{label}</span>
-                    )}
-                    {!isSidebarCollapsed && item.badge && (
-                      <span className={`nav-badge ${item.badgeColor || 'neutral'}`}>
-                        {item.badge}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+              {!isCollapsed && (
+                <div className="section-items">
+                  {sec.items.map((item, itemIdx) => {
+                    const Icon = item.icon;
+                    const isActive = item.subTab 
+                      ? (activeModule === 'admin' && adminTab === item.subTab)
+                      : (activeModule === item.id && !item.action);
+                    const label = t(item.labelKey) || item.defaultLabel;
+
+                    return (
+                      <button
+                        key={`${item.id}-${item.subTab || ''}-${itemIdx}`}
+                        className={`nav-row-btn ${isActive ? 'active' : ''}`}
+                        onClick={() => {
+                          if (item.action) {
+                            item.action();
+                          } else if (item.subTab) {
+                            openSetupTab(item.subTab);
+                          } else {
+                            setActiveModule(item.id);
+                          }
+                        }}
+                        title={isSidebarCollapsed ? label : undefined}
+                        type="button"
+                      >
+                        <Icon className="nav-icon" size={17} />
+                        {!isSidebarCollapsed && (
+                          <span className="nav-text">{label}</span>
+                        )}
+                        {!isSidebarCollapsed && item.badge && (
+                          <span className={`nav-badge ${item.badgeColor || 'neutral'}`}>
+                            {item.badge}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Sidebar Footer matching reference screenshot */}

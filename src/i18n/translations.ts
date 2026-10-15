@@ -51,6 +51,16 @@ export const translations: Record<Language, Record<string, string>> = {
     admin: 'System Administration',
     helpCenter: 'SOPs & Onboarding',
 
+    // Setup Sub-items
+    branches: 'Branches & Units',
+    users: 'Users & Staff',
+    roles: 'Roles & Permissions',
+    masters: 'Master Data',
+    customFields: 'Custom Fields',
+    settings: 'Company Settings',
+    auditLog: 'System Audit Trail',
+    apiWebhooks: 'API & Webhooks',
+
     // Dashboard KPIs
     activeGuards: 'Active Guards',
     requiredStrength: 'Required Strength',
@@ -232,6 +242,16 @@ export const translations: Record<Language, Record<string, string>> = {
     fieldMobile: 'मोबाइल फील्ड ड्यूटी',
     admin: 'सिस्टम प्रशासन',
     helpCenter: 'मानक संचालन प्रक्रिया (SOP)',
+
+    // Setup Sub-items
+    branches: 'शाखाएं एवं इकाइयां',
+    users: 'उपयोगकर्ता एवं स्टाफ',
+    roles: 'भूमिकाएं एवं अनुमतियां',
+    masters: 'मास्टर डेटा',
+    customFields: 'कस्टम फ़ील्ड्स',
+    settings: 'कंपनी सेटिंग्स',
+    auditLog: 'सिस्टम ऑडिट ट्रेल',
+    apiWebhooks: 'एपीआई और वेबहुक',
 
     // Dashboard KPIs
     activeGuards: 'सक्रिय गार्ड',

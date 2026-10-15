@@ -44,6 +44,18 @@ export interface ToastMessage {
   message: string;
 }
 
+export type AdminSubTab = 
+  | 'branches' 
+  | 'users' 
+  | 'roles' 
+  | 'masters' 
+  | 'customFields' 
+  | 'settings' 
+  | 'audit' 
+  | 'api' 
+  | 'integrations' 
+  | 'backup';
+
 interface ERPContextType {
   // Theme & Language
   theme: 'light' | 'dark';
@@ -57,6 +69,9 @@ interface ERPContextType {
   // Navigation
   activeModule: NavigationModule;
   setActiveModule: (m: NavigationModule) => void;
+  adminTab: AdminSubTab;
+  setAdminTab: (tab: AdminSubTab) => void;
+  openSetupTab: (tab: AdminSubTab) => void;
   isSidebarCollapsed: boolean;
   setIsSidebarCollapsed: (c: boolean) => void;
   toggleSidebar: () => void;
@@ -204,8 +219,14 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Navigation State
   const [activeModule, setActiveModule] = useState<NavigationModule>('dashboard');
+  const [adminTab, setAdminTab] = useState<AdminSubTab>('branches');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const toggleSidebar = () => setIsSidebarCollapsed(prev => !prev);
+
+  const openSetupTab = (tab: AdminSubTab) => {
+    setAdminTab(tab);
+    setActiveModule('admin');
+  };
 
   // Dialogs
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -1098,6 +1119,9 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         t,
         activeModule,
         setActiveModule,
+        adminTab,
+        setAdminTab,
+        openSetupTab,
         isSidebarCollapsed,
         setIsSidebarCollapsed,
         toggleSidebar,
